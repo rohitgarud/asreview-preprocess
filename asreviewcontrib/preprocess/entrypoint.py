@@ -8,7 +8,9 @@ from asreviewcontrib.preprocess.deduplication import deduplication
 from asreviewcontrib.preprocess.gui import launch_gui
 
 
-DATATOOLS = ["launch_GUI", "dedup"]
+DATATOOLS = ["launch_gui", "dedup"]
+HOST_NAME = "localhost"
+PORT_NUMBER = 5000
 
 
 class PreprocessEntryPoint(BaseEntryPoint):
@@ -22,10 +24,62 @@ class PreprocessEntryPoint(BaseEntryPoint):
         return __version__
 
     def execute(self, argv):
-        if len(argv) > 1 and argv[0] in DATATOOLS:
 
-            if argv[0] == "launch_GUI":
-                launch_gui()
+        if argv[0] in DATATOOLS:
+
+            if argv[0] == "launch_gui":
+                gui_parser = argparse.ArgumentParser(
+                    prog="asreview preprocess launch_gui",
+                    description="ASReview Preprocess GUI",
+                )
+
+                gui_parser.add_argument(
+                    "--ip",
+                    default=HOST_NAME,
+                    type=str,
+                    help="The IP address the server will listen on.",
+                )
+
+                gui_parser.add_argument(
+                    "--port",
+                    default=PORT_NUMBER,
+                    type=int,
+                    help="The port the server will listen on.",
+                )
+
+                gui_parser.add_argument(
+                    "--no-browser",
+                    dest="no_browser",
+                    action="store_true",
+                    help="Do not open ASReview Preprocess GUI in a browser after startup.",
+                )
+
+                gui_parser.add_argument(
+                    "--port-retries",
+                    dest="port_retries",
+                    default=50,
+                    type=int,
+                    help="The number of additional ports to try if the"
+                    "specified port is not available.",
+                )
+
+                gui_parser.add_argument(
+                    "--certfile",
+                    default="",
+                    type=str,
+                    help="The full path to an SSL/TLS certificate file.",
+                )
+
+                gui_parser.add_argument(
+                    "--keyfile",
+                    default="",
+                    type=str,
+                    help="The full path to a private key file for usage with SSL/TLS.",
+                )
+
+                gui_args = gui_parser.parse_args(argv[1:])
+
+                launch_gui(gui_args)
 
             if argv[0] == "dedup":
 
@@ -69,18 +123,18 @@ class PreprocessEntryPoint(BaseEntryPoint):
                     help="Output file path. Currently only .csv files are supported.",
                 )
 
-                args = dedup_parser.parse_args(argv)
+                dedup_args = dedup_parser.parse_args(argv)
 
-                if len(args.input_path) > 1:
+                if len(dedup_args.input_path) > 1:
                     raise ValueError(
                         "Deduplicating records from multiple files"
                         " via the CLI is not supported yet."
                     )
 
-                input_path = args.input_path[0]
+                input_path = dedup_args.input_path[0]
 
-                if args.output_path:
-                    output_path = args.output_path
+                if dedup_args.output_path:
+                    output_path = dedup_args.output_path
                     if not output_path.endswith(".csv"):
                         if "." in output_path:
                             raise ValueError(
@@ -95,9 +149,9 @@ class PreprocessEntryPoint(BaseEntryPoint):
                 deduplication(
                     input_path=input_path,
                     output_path=output_path,
-                    method=args.methods,
-                    pid=args.pid,
-                    drop_duplicates=args.drop_duplicates,
+                    method=dedup_args.methods,
+                    pid=dedup_args.pid,
+                    drop_duplicates=dedup_args.drop_duplicates,
                 )
 
             if argv[0] == "abstract_finder":
