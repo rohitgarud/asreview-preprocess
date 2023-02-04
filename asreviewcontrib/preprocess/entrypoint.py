@@ -5,10 +5,11 @@ from datetime import datetime
 from asreview.entry_points import BaseEntryPoint
 
 from asreviewcontrib.preprocess.deduplication import deduplication
+from asreviewcontrib.preprocess.abstract_finder import find_missing_abstracts
 from asreviewcontrib.preprocess.gui import launch_gui
+import asreviewcontrib.preprocess.preprocess_utils as putils
 
-
-DATATOOLS = ["launch_gui", "dedup"]
+AVAILABLE_COMMANDS = ["launch_gui", "dedup", "abstract_finder"]
 HOST_NAME = "localhost"
 PORT_NUMBER = 5000
 
@@ -25,7 +26,7 @@ class PreprocessEntryPoint(BaseEntryPoint):
 
     def execute(self, argv):
 
-        if argv[0] in DATATOOLS:
+        if argv[0] in AVAILABLE_COMMANDS:
 
             if argv[0] == "launch_gui":
                 gui_parser = argparse.ArgumentParser(
@@ -81,7 +82,7 @@ class PreprocessEntryPoint(BaseEntryPoint):
 
                 launch_gui(gui_args)
 
-            if argv[0] == "dedup":
+            elif argv[0] == "dedup":
 
                 dedup_parser = argparse.ArgumentParser(prog="asreview preprocess dedup")
 
@@ -132,19 +133,7 @@ class PreprocessEntryPoint(BaseEntryPoint):
                     )
 
                 input_path = dedup_args.input_path[0]
-
-                if dedup_args.output_path:
-                    output_path = dedup_args.output_path
-                    if not output_path.endswith(".csv"):
-                        if "." in output_path:
-                            raise ValueError(
-                                "File extensions other than .csv are not supported yet"
-                            )
-                        else:
-                            output_path += ".csv"
-                else:
-                    output_path = os.path.basename(input_path)
-                    output_path = f"{os.path.splitext(output_path)[0]}-deduplicated-{datetime.now().strftime('%Y%m%dT%H%M')}.csv"
+                output_path = putils.get_output_path(dedup_args)
 
                 deduplication(
                     input_path=input_path,
@@ -154,8 +143,62 @@ class PreprocessEntryPoint(BaseEntryPoint):
                     drop_duplicates=dedup_args.drop_duplicates,
                 )
 
-            if argv[0] == "abstract_finder":
-                pass
+            elif argv[0] == "abstract_finder":
+                af_parser = argparse.ArgumentParser(
+                    prog="asreview preprocess abstract_finder"
+                )
+
+                af_parser.add_argument(
+                    "input_path",
+                    metavar="input_path",
+                    type=str,
+                    nargs="+",
+                    help="The file path of the dataset.",
+                )
+
+                af_parser.add_argument(
+                    "--doi_column",
+                    default="doi",
+                    type=str,
+                    help="Name of DOI column, as dois will be used for finding abstracts (default: doi)",
+                )
+
+                af_parser.add_argument(
+                    "-email",
+                    "--email",
+                    type=str,
+                    help="Your email id. Abstracts are found using Openalex API with pyalex package. Better speed and performance can be achieved by adding email to API call. See OpenAlex documentation for more details at https://docs.openalex.org/how-to-use-the-api/rate-limits-and-authentication",
+                )
+
+                af_parser.add_argument(
+                    "-o",
+                    "--output",
+                    dest="output_path",
+                    help="Output file path. Currently only .csv files are supported.",
+                )
+
+                af_args = af_parser.parse_args(argv)
+
+                if len(af_args.input_path) > 1:
+                    raise ValueError(
+                        "Finding abstracts for records from multiple files"
+                        " via the CLI is not supported yet."
+                    )
+
+                input_path = af_args.input_path[0]
+                output_path = putils.get_output_path(af_args)
+
+                find_missing_abstracts(
+                    input_path=input_path,
+                    output_path=output_path,
+                    doi_column=af_args.doi_column,
+                    email=af_args.email,
+                )
+
+            else:
+                raise ValueError(
+                    f"The command {argv[0]} is not available. Please use one from {AVAILABLE_COMMANDS}"
+                )
 
         else:
             parser = argparse.ArgumentParser(
@@ -168,7 +211,7 @@ class PreprocessEntryPoint(BaseEntryPoint):
                 "subcommand",
                 nargs="?",
                 default=None,
-                help=f"Available commands:\n\n" f"{DATATOOLS}",
+                help=f"Available commands:\n\n" f"{AVAILABLE_COMMANDS}",
             )
 
             parser.add_argument(
