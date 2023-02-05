@@ -177,7 +177,7 @@ class PreprocessEntryPoint(BaseEntryPoint):
                     help="Output file path. Currently only .csv files are supported.",
                 )
 
-                af_args = af_parser.parse_args(argv)
+                af_args = af_parser.parse_args(argv[1:])
 
                 if len(af_args.input_path) > 1:
                     raise ValueError(
