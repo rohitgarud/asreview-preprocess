@@ -12,9 +12,10 @@ from asreview.webapp.start_flask import _check_port_in_use, _open_browser
 
 try:
     from flask_sqlalchemy import SQLAlchemy
+    from flask_bootstrap import Bootstrap
 except ImportError:
     print(
-        "The GUI requires the flask-SQLAlchemy package to be installed. Install optional ASReview-preprocess dependencies specific for GUI with 'pip install asreview-preprocess[gui]' or all dependencies with 'pip install asreview-preprocess[all]'"
+        "The GUI requires additional packages to be installed. Install optional ASReview-preprocess dependencies specific for GUI with 'pip install asreview-preprocess[gui]' or all dependencies with 'pip install asreview-preprocess[all]'"
     )
 
 # set logging level
@@ -35,7 +36,10 @@ def create_app(**kwargs):
         template_folder="templates",
     )
 
+    Bootstrap(app)
+
     app.config["preprocess_kwargs"] = kwargs
+    app.config["BOOTSTRAP_SERVE_LOCAL"] = True
     app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 
     def allowed_file(filename):
