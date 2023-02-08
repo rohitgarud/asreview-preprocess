@@ -4,9 +4,9 @@ from datetime import datetime
 
 
 def clean_doi(doi):
-    pattern = re.compile(r"(https?://(dx.)?doi\.org/)?(.*)")
     if doi:
-        return f"https://doi.org/{pattern.match(doi).group(3)}"
+        doi = re.findall(r"(10\..+)", doi)[0].strip()
+        return f"https://doi.org/{doi}"
     return doi
 
 
@@ -21,8 +21,6 @@ def clean_pages(pages):
             return f"{start}-{end}"
         return start
     return ""
-
-clean
 
 
 def clean_authors(authors):
