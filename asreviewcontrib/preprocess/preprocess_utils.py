@@ -10,6 +10,21 @@ def clean_doi(doi):
     return doi
 
 
+def clean_pages(pages):
+    if pages:
+        pages = re.sub(r"[^0-9-]", "", pages)
+        start, end = re.findall(r"(?P<start>[0-9]*)-?(?P<end>[0-9]*)", pages)[0]
+        if end:
+            len_diff = len(start) - len(end)
+            if len_diff > 0:
+                end = f"{start[:len_diff]}{end}"
+            return f"{start}-{end}"
+        return start
+    return ""
+
+clean
+
+
 def clean_authors(authors):
     pass
 
