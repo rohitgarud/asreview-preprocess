@@ -3,10 +3,15 @@ import os
 from datetime import datetime
 
 
+def load_endnote_xml(input_filepath):
+    pass
+
+
 def clean_doi(doi):
     if doi:
-        doi = re.findall(r"(10\..+)", doi)[0].strip()
-        return f"https://doi.org/{doi}"
+        doi = re.findall(r"(10\..+)", doi)
+        if doi:
+            return f"https://doi.org/{doi[0].strip()}"
     return doi
 
 
