@@ -40,13 +40,17 @@ setup(
         "asreview>=1,<2",
     ],
     extras_require={
+        "abstract_finder": ["pyalex"],
         "gui": [
-            "SQLAlchemy-2.0.0",
             "flask-SQLalchemy-3.0.3",
+            "flask-bootstrap",
+            "flask-wtf",
         ],
         "all": [
-            "SQLAlchemy-2.0.0",
+            "pyalex",
             "flask-SQLalchemy-3.0.3",
+            "flask-bootstrap",
+            "flask-wtf",
         ],
     },
     entry_points={
