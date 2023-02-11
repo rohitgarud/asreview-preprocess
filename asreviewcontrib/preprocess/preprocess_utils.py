@@ -2,6 +2,7 @@ import logging
 import re
 import os
 from datetime import datetime
+import csv
 
 import pandas as pd
 import numpy as np
@@ -28,6 +29,14 @@ DEDUPLICATION_COLUMN_DEFINITIONS = {
     "issn": "isbn",
     "secondary_title": "secondary_title",
 }
+
+# Dictionary of journal name abbreviations and full forms
+with open("all_journal_abbreviations.csv", "r") as f:
+    reader = csv.reader(f)
+    all_journal_abbreviations = {}
+
+    for row in reader:
+        all_journal_abbreviations[row[0]] = row[1].encode("ascii", "ignore").decode()
 
 # Load Data
 def load_data(input_filepath):
