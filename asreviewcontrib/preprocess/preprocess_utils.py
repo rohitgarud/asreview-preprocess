@@ -38,6 +38,7 @@ with open("all_journal_abbreviations.csv", "r") as f:
     for row in reader:
         all_journal_abbreviations[row[0]] = row[1].encode("ascii", "ignore").decode()
 
+
 # Load Data
 def load_data(input_filepath):
     """Load data from file, URL or plugin.
@@ -59,7 +60,7 @@ def load_data(input_filepath):
     df, col_specs = _standardize_dataframe_for_deduplication(
         df, column_spec=DEDUPLICATION_COLUMN_DEFINITIONS
     )
-    return df
+    return df, col_specs
 
 
 def type_from_column_spec(col_name, column_spec):
@@ -109,6 +110,18 @@ def clean_pages(pages):
     return ""
 
 
+def clean_journal(journal):
+    """Expand abbreviated journal names"""
+    preprocess_journal = journal.encode("ascii", "ignore").decode("ascii")
+    preprocess_journal = re.sub("[^a-zA-Z0-9\s]", "", preprocess_journal)
+    # TODO: Handle Accents better
+
+    try:
+        return all_journal_abbreviations[preprocess_journal]
+    except KeyError:
+        return journal
+
+
 def clean_authors(authors):
     """Unify author names to a common format."""
     pass
@@ -120,13 +133,17 @@ def clean_isbn(isbn):
 
 
 def get_output_path(args):
+    """Get output path based on user input.
+
+    If path is given, check if it is accepted format. If path is not given, output filename is same as input filename with datetime added"""
+
     input_path = args.input_path[0]
     if args.output_path:
         output_path = args.output_path
         if not output_path.endswith(".csv"):
             if "." in output_path:
                 raise ValueError(
-                    "File extensions other than .csv are not supported yet"
+                    "Output File extensions other than .csv are not supported yet"
                 )
             else:
                 output_path += ".csv"
@@ -179,7 +196,7 @@ def _standardize_dataframe_for_deduplication(df, column_spec={}):
     # Check if we have all the required columns and add empty columns if missing.
     for col in cols_for_dedupe:
         if col not in col_names:
-            df[col] = ""
+            df.insert(5, col, "")
             logging.warning(
                 f"Unable to detect '{col}' in the dataset. An emplty column for '{col}' will be added and used for deduplication."
             )
@@ -195,18 +212,25 @@ def _standardize_dataframe_for_deduplication(df, column_spec={}):
             except KeyError:
                 pass
 
+    # print(f"col_names: {col_names}")
+    # print(f"col_specs: {all_column_spec}")
+
     # Use secondary title as journal if journal name is missing
     if "secondary_title" in col_names:
         logging.warning(
             f"Secondary title column will be used for filling missing values in Journal column"
         )
-        try:
-            df["journal"] = np.where(
-                df["journal"] == "",
-                df["secondary_title"],
-                df["journal"],
-            )
-        except KeyError:
-            pass
+        # Replace NA values with empty strings
+        df[all_column_spec["secondary_title"]] = np.where(
+            pd.isnull(df[all_column_spec["secondary_title"]]),
+            "",
+            df[all_column_spec["secondary_title"]].astype(str),
+        )
+
+        df["journal"] = np.where(
+            df["journal"] == "",
+            df["secondary_title"],
+            df["journal"],
+        )
 
     return df, all_column_spec
