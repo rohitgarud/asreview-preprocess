@@ -6,6 +6,7 @@ import csv
 
 import pandas as pd
 import numpy as np
+from unidecode import unidecode
 
 from asreview.config import COLUMN_DEFINITIONS
 from asreview.exceptions import BadFileFormatError
@@ -15,19 +16,15 @@ from xml_reader import EndnoteXMLReader
 
 # Additional column definitions required for deduplication
 DEDUPLICATION_COLUMN_DEFINITIONS = {
-    "record_id": "record_id",
-    "rec-number": "record_id",
-    "year": "year",
-    "ref_type": "ref_type",
-    "type_of_reference": "ref_type",
-    "journal": "journal",
-    "volume": "volume",
-    "pages": "pages",
-    "start_page": "pages",
-    "number": "number",
-    "isbn": "isbn",
-    "issn": "isbn",
-    "secondary_title": "secondary_title",
+    "record_id": ["record_id", "rec-number"],
+    "year": ["year"],
+    "ref_type": ["ref_type", "type_of_reference"],
+    "journal": ["journal"],
+    "volume": ["volume"],
+    "pages": ["pages", "start_page"],
+    "number": ["number", "issue"],
+    "isbn": ["isbn", "issn"],
+    "secondary_title": ["secondary_title", "secondary title", "secondary-title"],
 }
 
 # Dictionary of journal name abbreviations and full forms
@@ -63,31 +60,12 @@ def load_data(input_filepath):
     return df, col_specs
 
 
-def type_from_column_spec(col_name, column_spec):
-    """Retrieve the standardized name of a column.
-    Parameters
-    ---------
-    col_name: str
-        Name of the column in the dataframe.
-    column_spec: dict
-        Dictionary of {possible name}:{standardized_name}.
-    Returns
-    -------
-    str:
-        The standardized name. If it wasn't found, return None.
-    """
-    for (column_spec_name, data_type) in column_spec.items():
-        if col_name.lower() == column_spec_name.lower():
-            return data_type
-    return None
-
-
 # Clean different fields to unify them to a common format
 def clean_doi(doi):
     """unify DOIs to a common format https://doi.org/{doi}"""
-    if doi:
+    if len(doi) > 0:
         doi = re.findall(r"(10\..+)", doi)
-        if doi:
+        if len(doi) > 0:
             return f"https://doi.org/{doi[0].strip()}"
     return doi
 
@@ -124,12 +102,23 @@ def clean_journal(journal):
 
 def clean_authors(authors):
     """Unify author names to a common format."""
-    pass
+    authors = unidecode(authors)
+    matches = re.finditer(
+        r"\s?(?P<last>([A-Z]?[a-z]*\s?)*-?[A-Z][a-z]+),?\s+(?P<first>[A-Z])(?P<full>[a-z])?.?\s?(?P<middle>[A-Z])?.?",
+        authors.replace('"', ""),
+    )
+    authors = " ".join(
+        f"{match.group('last')} {match.group('first')} {match.group('middle')}"
+        if match.group("middle")
+        else f"{match.group('last')} {match.group('first')}"
+        for match in matches
+    )
+    return authors
 
 
 def clean_isbn(isbn):
     """Unify ISBNs/ISSNs to a common format."""
-    pass
+    return isbn
 
 
 def get_output_path(args):
@@ -170,7 +159,7 @@ def _standardize_dataframe_for_deduplication(df, column_spec={}):
     col_names = list(df.columns)
     for column_name in col_names:
         # First try the supplied column specifications if supplied.
-        data_type = type_from_column_spec(column_name, column_spec)
+        data_type = type_from_column(column_name, column_spec)
         if data_type is not None:
             all_column_spec[data_type] = column_name
             continue
@@ -196,6 +185,7 @@ def _standardize_dataframe_for_deduplication(df, column_spec={}):
     # Check if we have all the required columns and add empty columns if missing.
     for col in cols_for_dedupe:
         if col not in col_names:
+            all_column_spec[col] = column_spec[col]
             df.insert(5, col, "")
             logging.warning(
                 f"Unable to detect '{col}' in the dataset. An emplty column for '{col}' will be added and used for deduplication."
@@ -232,5 +222,13 @@ def _standardize_dataframe_for_deduplication(df, column_spec={}):
             df["secondary_title"],
             df["journal"],
         )
+
+    # Format missing author names
+    df[all_column_spec["authors"]] = np.where(
+        (df[all_column_spec["authors"]] == "")
+        | (df[all_column_spec["authors"]].str.lower() == "anonymous"),
+        "Unknown",
+        df[all_column_spec["authors"]],
+    )
 
     return df, all_column_spec
