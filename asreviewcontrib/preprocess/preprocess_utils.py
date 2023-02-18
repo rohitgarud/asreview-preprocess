@@ -27,6 +27,23 @@ DEDUPLICATION_COLUMN_DEFINITIONS = {
     "secondary_title": ["secondary_title", "secondary title", "secondary-title"],
 }
 
+HTML_ENTITIES = [
+    "</\w+>",
+    "<\w+>",
+    "&nbsp;",
+    "&lt;",
+    "&gt;",
+    "&amp;",
+    "&quot;",
+    "&apos;",
+    "&cent;",
+    "&pound;",
+    "&yen;",
+    "&euro;",
+    "&copy;",
+    "&reg;",
+]
+
 # Dictionary of journal name abbreviations and full forms
 with open("all_journal_abbreviations.csv", "r") as f:
     reader = csv.reader(f)
@@ -61,6 +78,26 @@ def load_data(input_filepath):
 
 
 # Clean different fields to unify them to a common format
+def clean_title(title):
+    for entity in HTML_ENTITIES:
+        title = re.sub(f"{entity}", " ", title)
+    title = unidecode(title)
+    title = re.sub(r"[^A-Za-z0-9]", " ", title)
+    title = re.sub(r" +", " ", title).strip().upper()
+    return title
+
+
+def clean_abstract(abstract):
+    for entity in HTML_ENTITIES:
+        abstract = re.sub(f"{entity}", " ", abstract)
+    abstract = unidecode(abstract)
+    abstract = re.sub(r"[^A-Za-z0-9]", " ", abstract)
+    abstract = re.sub(r" +", " ", abstract).strip().upper()
+    # Remove copywrite information
+    # abstract = re.sub(r"COPYRIGHT.*", " ", abstract)
+    return abstract
+
+
 def clean_doi(doi):
     """unify DOIs to a common format https://doi.org/{doi}"""
     if len(doi) > 0:
@@ -75,6 +112,7 @@ def clean_pages(pages):
     try:
         # Checking if date is missfilled as pages in input dataset
         is_date = re.findall(r"\d{2}-\d{2}-\d{4}", pages)[0]
+        return ""
     except:
         if pages:
             pages = re.sub(r"[^0-9-]", "", pages)
@@ -118,6 +156,8 @@ def clean_authors(authors):
 
 def clean_isbn(isbn):
     """Unify ISBNs/ISSNs to a common format."""
+    isbn = re.sub(r"\s\((Print|Electronic)\).*", "", isbn)
+    isbn = re.sub(r"\r", "; ", isbn)
     return isbn
 
 
