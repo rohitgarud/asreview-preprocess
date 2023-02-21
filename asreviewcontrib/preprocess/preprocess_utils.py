@@ -109,7 +109,7 @@ def clean_doi(doi):
     if len(doi) > 0:
         doi = re.findall(r"(10\..+)", doi)
         if len(doi) > 0:
-            return f"https://doi.org/{doi[0].strip()}"
+            return f"https://doi.org/{doi[0].strip().upper()}"
     return doi
 
 
@@ -158,6 +158,12 @@ def clean_authors(authors):
         for match in matches
     )
     return authors
+
+
+def clean_volume(volume):
+    """Unify volume to a common format."""
+    volume = volume.lower().replace("(no pagination)", "")
+    return volume
 
 
 def clean_isbn(isbn):
@@ -333,19 +339,19 @@ def retrieve_records(doi_list):
     # Try to retrieve records from local database if available
     retrieved_records, doi_list = retrieve_records_from_localdb(doi_list)
 
-    # doi_chunks = (
-    #     doi_list[i : i + OPENALEX_QUERY_LIMIT]
-    #     for i in range(0, len(doi_list), OPENALEX_QUERY_LIMIT)
-    # )
-    # # Retrieve records in chunks using OpenAlex "OR" syntax with pyalex
-    # # TODO: Check if Lens.org api or database can be used freely
+    doi_chunks = (
+        doi_list[i : i + OPENALEX_QUERY_LIMIT]
+        for i in range(0, len(doi_list), OPENALEX_QUERY_LIMIT)
+    )
+    # Retrieve records in chunks using OpenAlex "OR" syntax with pyalex
+    # TODO: Check if Lens.org api or database can be used freely
 
-    # for chunk in doi_chunks:
-    #     data_chunk = Works().filter(doi="|".join(chunk)).get()
-    #     for data in data_chunk:
-    #         retrieved_records[data["doi"]] = data
+    for chunk in doi_chunks:
+        data_chunk = Works().filter(doi="|".join(chunk)).get()
+        for data in data_chunk:
+            retrieved_records[data["doi"]] = data
 
-    # update_localdb(retrieved_records, doi_list)
+    update_localdb(retrieved_records, doi_list)
 
     return retrieved_records
 
