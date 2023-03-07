@@ -36,9 +36,7 @@ setup(
     ],
     keywords="asreview preprocess",
     packages=find_namespace_packages(include=["asreviewcontrib.*"]),
-    install_requires=[
-        "asreview>=1,<2",
-    ],
+    install_requires=["asreview>=1,<2", "unidecode", "tinydb"],
     extras_require={
         "abstract_finder": ["pyalex"],
         "gui": [

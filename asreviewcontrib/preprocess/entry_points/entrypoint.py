@@ -7,7 +7,7 @@ from asreview.entry_points import BaseEntryPoint
 from asreviewcontrib.preprocess.deduplication import deduplication
 from asreviewcontrib.preprocess.abstract_finder import find_missing_abstracts
 from asreviewcontrib.preprocess.webapp.gui import launch_gui
-import asreviewcontrib.preprocess.preprocess_utils as putils
+from asreviewcontrib.preprocess.entry_points import ep_utils
 
 AVAILABLE_COMMANDS = ["launch_gui", "dedup", "abstract_finder"]
 HOST_NAME = "localhost"
@@ -133,7 +133,7 @@ class PreprocessEntryPoint(BaseEntryPoint):
                     )
 
                 input_path = dedup_args.input_path[0]
-                output_path = putils.get_output_path(dedup_args)
+                output_path = ep_utils.get_output_path(dedup_args)
 
                 deduplication(
                     input_path=input_path,
@@ -186,7 +186,7 @@ class PreprocessEntryPoint(BaseEntryPoint):
                     )
 
                 input_path = af_args.input_path[0]
-                output_path = putils.get_output_path(af_args)
+                output_path = ep_utils.get_output_path(af_args)
 
                 find_missing_abstracts(
                     input_path=input_path,
