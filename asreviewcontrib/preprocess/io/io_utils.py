@@ -57,7 +57,7 @@ def _standardize_dataframe_for_deduplication(df, column_spec={}):
     # Use secondary title as journal if journal name is missing
     if "secondary_title" in col_names:
         logging.warning(
-            f"Secondary title column will be used for filling missing values in Journal column"
+            "Secondary title column will be used for filling missing values in Journal column"
         )
         # Replace NA values with empty strings
         df[all_column_spec["secondary_title"]] = np.where(
