@@ -1,0 +1,124 @@
+body {
+    font-family: Roboto, Helvetica, Arial, sans-serif;
+    background-color: #fff;
+    overflow-x: hidden;
+    margin: 0;
+    color: rgba(0, 0, 0, 0.87);
+    overflow: hidden;
+}
+
+table,
+tr {
+    box-shadow: rgb(0 0 0 / 20%) 0px 3px 1px -2px, rgb(0 0 0 / 14%) 0px 2px 2px 0px, rgb(0 0 0 / 12%) 0px 1px 5px 0px;
+}
+
+.shadow {
+    position: relative;
+    box-shadow: 0 3px 5px rgba(0, 0, 0, 0.3);
+}
+
+/* Navbar */
+
+.navbar {
+    background-color: #fff;
+    overflow: hidden;
+    height: 64px;
+    z-index: 1;
+    display: flex;
+}
+
+.navbar-nav {
+    display: flex;
+    color: #000;
+    text-align: center;
+    padding: 14px 16px;
+    text-decoration: none;
+    font-size: 17px;
+    margin: 8px 0 0 0;
+}
+
+/* Sidebar Toggle Hamburger Button */
+.hamburger a {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    height: 48px;
+    margin: 4px 10px;
+    border-radius: 50%;
+}
+
+.hamburger a:hover {
+    background-color: #f5f5f5;
+    transition: 0.3s;
+}
+
+/* Side Navigation */
+.side-nav {
+    margin-top: 64px;
+    height: 100%;
+    width: 250px;
+    position: fixed;
+    top: 0;
+    left: 0;
+    overflow-x: hidden;
+    transition: 0.5s;
+    border-right: #ddd solid 1px;
+}
+
+.side-nav.collapsed {
+    transform: translateX(-75%);
+    position: absolute;
+}
+
+.side-nav hr {
+    border: #ddd solid 1px;
+}
+
+.side-nav a {
+    padding: 10px 10px 10px 30px;
+    text-decoration: none;
+    font-size: 1.2rem;
+    color: rgba(0, 0, 0, 0.87);
+    font-weight: 400;
+    display: block;
+    transition: background-color 0.3s;
+}
+
+.side-nav a:hover {
+    background-color: rgba(0, 0, 0, 0.08);
+}
+
+.top-side {
+    height: 50%;
+    margin-top: 10px;
+}
+
+.top-side a:focus {
+    background-color: rgba(129, 103, 0, 0.08);
+    border-left: rgb(129, 103, 0) solid 3px;
+    color: #816700;
+    font-weight: 600;
+}
+
+#main {
+    text-align: center;
+    max-width: 960px;
+    padding: 8px 24px 32px;
+    width: 100%;
+    margin-left: 250px;
+    transition: margin-left 0.5s;
+    padding: 20px;
+    overflow: hidden;
+    width: 60%;
+}
+
+/* #main.collapsed {
+    margin-left: 62.5px;
+} */
+
+@media(max-width:568px) {
+    .navbar-nav {
+        display: none;
+    }
+}

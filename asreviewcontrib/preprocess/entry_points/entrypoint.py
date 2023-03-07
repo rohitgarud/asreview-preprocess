@@ -6,7 +6,7 @@ from asreview.entry_points import BaseEntryPoint
 
 from asreviewcontrib.preprocess.deduplication import deduplication
 from asreviewcontrib.preprocess.abstract_finder import find_missing_abstracts
-from asreviewcontrib.preprocess.gui import launch_gui
+from asreviewcontrib.preprocess.webapp.gui import launch_gui
 import asreviewcontrib.preprocess.preprocess_utils as putils
 
 AVAILABLE_COMMANDS = ["launch_gui", "dedup", "abstract_finder"]

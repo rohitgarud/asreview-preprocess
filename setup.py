@@ -55,7 +55,7 @@ setup(
     },
     entry_points={
         "asreview.entry_points": [
-            "preprocess = asreviewcontrib.preprocess.entrypoint:PreprocessEntryPoint",
+            "preprocess = asreviewcontrib.preprocess.entry_points.entrypoint:PreprocessEntryPoint",
         ]
     },
     project_urls={

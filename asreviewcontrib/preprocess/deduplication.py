@@ -3,17 +3,7 @@ import pandas as pd
 from pandas.api.types import is_string_dtype
 
 from asreview.data import load_data
-from asreview.config import COLUMN_DEFINITIONS
-from asreview.config import LABEL_NA
-from asreview.datasets import DatasetManager
-from asreview.datasets import DatasetNotFoundError
-from asreview.exceptions import BadFileFormatError
-from asreview.io import PaperRecord
-from asreview.io.utils import convert_keywords
-from asreview.io.utils import type_from_column
-from asreview.utils import get_entry_points
-from asreview.utils import is_iterable
-from asreview.utils import is_url
+from asreviewcontrib.preprocess.preprocess_utils import clean_doi
 
 
 def deduplication(input_path, output_path, methods, pid, drop_duplicates):
@@ -21,18 +11,45 @@ def deduplication(input_path, output_path, methods, pid, drop_duplicates):
 
     for method in methods:
         if method == "title":
-            pass
+            s_title = dataset.title.copy()
+            s_title = (
+                s_title.str.replace("[^A-Za-z0-9]", "", regex=True)
+                .str.lower()
+                .str.strip()
+                .replace("", None)
+            )
+            # save boolean series for duplicates based on titles/abstracts
+            s_dups_title = (s_title.duplicated()) & (s_title.notnull())
+
         if method == "abstract":
-            pass
+            s_abstract = dataset.title.copy()
+            s_abstract = (
+                s_abstract.str.replace("[^A-Za-z0-9]", "", regex=True)
+                .str.lower()
+                .str.strip()
+                .replace("", None)
+            )
+            # save boolean series for duplicates based on titles/abstracts
+            s_dups_title = (s_abstract.duplicated()) & (s_abstract.notnull())
         if method == "pid":
             if pid not in dataset.columns:
+                s_dups_pid = None
                 print(
                     f"Not using {pid} for deduplication"
                     "because there is no such data available in the dataset."
                 )
                 continue
             else:
-                pass
+                if is_string_dtype(dataset[pid]):
+                    s_pid = dataset[pid].str.strip().replace("", None)
+                    if pid == "doi":
+                        s_pid = s_pid.apply(clean_doi)
+
+                else:
+                    s_pid = dataset[pid]
+                # save boolean series for duplicates based on persistent identifiers
+                s_dups_pid = (s_pid.duplicated()) & (s_pid.notnull())
+
         if method == "fuzzy":
             pass
 
@@ -75,15 +92,3 @@ def duplicated(self, pid="doi"):
         s_dups = s_dups_text
 
     return s_dups
-
-
-# def drop_duplicates(self, pid="doi", inplace=False, reset_index=True):
-
-#     df = self.df[~self.duplicated(pid)]
-
-#     if reset_index:
-#         df = df.reset_index(drop=True)
-#     if inplace:
-#         self.df = df
-#         return
-#     return df

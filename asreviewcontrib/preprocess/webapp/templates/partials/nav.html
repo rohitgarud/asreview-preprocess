@@ -1,0 +1,26 @@
+{% extends "bootstrap/base.html" %}
+
+{% block navbar %}
+<nav class="navbar shadow">
+    <span class="hamburger">
+        <a href="#" onclick="toggleSideNav()">
+            <svg width="24" height="24">
+                <line x1="3" y1="7" x2="21" y2="7" stroke="#000" stroke-width="2" />
+                <line x1="3" y1="12" x2="21" y2="12" stroke="#000" stroke-width="2" />
+                <line x1="3" y1="17" x2="21" y2="17" stroke="#000" stroke-width="2" />
+            </svg>
+        </a>
+    </span>
+    <div class="navbar-brand">ASReview Preprocess</div>
+</nav>
+
+<div class="side-nav">
+    <div class="top-side">
+        <a href="#">Datasets</a>
+    </div>
+    <hr>
+    <div class="bottom-side">
+        <a href="#">Details</a>
+    </div>
+</div>
+{% endblock navbar %}

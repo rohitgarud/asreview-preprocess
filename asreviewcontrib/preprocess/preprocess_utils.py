@@ -15,7 +15,7 @@ from asreview.exceptions import BadFileFormatError
 from asreview.io.utils import _standardize_dataframe, type_from_column
 from asreview.data import load_data as asreview_load_data
 
-from xml_reader import EndnoteXMLReader
+from asreviewcontrib.preprocess.io.xml_reader import EndnoteXMLReader
 
 
 # Additional column definitions required for deduplication
