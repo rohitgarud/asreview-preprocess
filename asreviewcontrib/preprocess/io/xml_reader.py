@@ -1,6 +1,6 @@
-import pandas as pd
 import xml.etree.ElementTree as ET
 
+import pandas as pd
 from asreview.io.utils import _standardize_dataframe
 
 
@@ -12,7 +12,7 @@ class EndnoteXMLReader:
 
     @classmethod
     def read_data(cls, fp):
-        """Import dataset.
+        """Import dataset from Endnote XML file.
 
         Arguments
         ---------
@@ -28,73 +28,73 @@ class EndnoteXMLReader:
         root = tree.getroot()
         dataset_list = []
         for i, record in enumerate(root[0]):
-            record_id = record.find("rec-number").text
+            try:
+                record_id = record.find("rec-number").text
+            except (AttributeError, TypeError):
+                record_id = None
             try:
                 ref_type = record.find("ref-type").attrib["name"]
-            except:
+            except (AttributeError, TypeError):
                 ref_type = None
             try:
                 authors = ", ".join(
                     author[0].text
                     for author in record.find("contributors").find("authors")
                 )
-            except:
+            except (AttributeError, TypeError):
                 authors = None
             try:
                 title = record.find("titles").find("title")[0].text
-            except:
+            except (AttributeError, TypeError):
                 title = None
             try:
                 second_title = record.find("titles").find("secondary-title")[0].text
-            except:
+            except (AttributeError, TypeError):
                 second_title = None
             try:
                 journal = record.find("periodical").find("full-title")[0].text
-            except:
+            except (AttributeError, TypeError):
                 journal = None
             try:
                 doi = record.find("electronic-resource-num")[0].text
-            except:
+            except (AttributeError, TypeError):
                 doi = None
             try:
                 pages = record.find("pages")[0].text
-            except:
+            except (AttributeError, TypeError):
                 pages = None
             try:
                 volume = record.find("volume")[0].text
-            except:
+            except (AttributeError, TypeError):
                 volume = None
             try:
-                issue = record.find("number")[0].text
-            except:
-                issue = None
+                number = record.find("number")[0].text
+            except (AttributeError, TypeError):
+                number = None
             try:
                 year = record.find("dates").find("year")[0].text
-            except:
+            except (AttributeError, TypeError):
                 year = None
             try:
                 url = record.find("urls").find("related-urls").find("url")[0].text
-            except:
+            except (AttributeError, TypeError):
                 url = None
             try:
                 isbn = record.find("isbn")[0].text
-            except:
+            except (AttributeError, TypeError):
                 isbn = None
             try:
                 abstract = record.find("abstract")[0].text
-            except:
+            except (AttributeError, TypeError):
                 abstract = None
-            try:
-                caption = record.find("caption")[0].text
-            except:
-                caption = None
-            try:
-                label = record.find("label")[0].text
-            except:
-                label = None
+            # try:
+            #     label = record.find("label")[0].text
+            # except (AttributeError, TypeError):
+            #     label = None
             dataset_list.append(
                 {
-                    "record_id": record_id,
+                    "recordID": record_id,
+                    # record_id is overwritten by ASReview standardize_dataframe
                     "ref_type": ref_type,
                     "authors": authors,
                     "title": title,
@@ -104,12 +104,12 @@ class EndnoteXMLReader:
                     "doi": doi,
                     "pages": pages,
                     "volume": volume,
-                    "issue": issue,
+                    "number": number,
                     "abstract": abstract,
                     "isbn": isbn,
                     "url": url,
-                    "caption": caption,
-                    "label": label,
+                    # "label": label,
+                    # TODO: Handle conflict between Endnote label and ASReview label
                 }
             )
 
