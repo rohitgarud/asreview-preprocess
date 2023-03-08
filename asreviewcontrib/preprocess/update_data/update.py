@@ -1,6 +1,6 @@
 import numpy as np
 from asreviewcontrib.preprocess.local_db.localdb import TinyLocalDB
-from asreviewcontrib.preprocess.dedupe import dd_utils
+from asreviewcontrib.preprocess.deduplication import dd_utils
 from asreviewcontrib.preprocess.update_data.openalex_updater import OpenAlexUpdater
 
 

@@ -3,11 +3,10 @@ import os
 from datetime import datetime
 
 from asreview.entry_points import BaseEntryPoint
-
-from asreviewcontrib.preprocess.deduplication import deduplication
 from asreviewcontrib.preprocess.abstract_finder import find_missing_abstracts
-from asreviewcontrib.preprocess.webapp.gui import launch_gui
+from asreviewcontrib.preprocess.deduplication import deduplication
 from asreviewcontrib.preprocess.entry_points import ep_utils
+from asreviewcontrib.preprocess.webapp.gui import launch_gui
 
 AVAILABLE_COMMANDS = ["launch_gui", "dedup", "abstract_finder"]
 HOST_NAME = "localhost"
