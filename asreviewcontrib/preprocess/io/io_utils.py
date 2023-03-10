@@ -3,6 +3,7 @@ import logging
 import numpy as np
 import pandas as pd
 from asreview.io.utils import _standardize_dataframe
+from asreviewcontrib.preprocess.config import COLS_FOR_DEDUPE
 
 
 def _standardize_dataframe_for_deduplication(df, column_spec={}):
@@ -21,21 +22,9 @@ def _standardize_dataframe_for_deduplication(df, column_spec={}):
     df, all_column_spec = _standardize_dataframe(df, column_spec)
 
     col_names = list(all_column_spec)
-    cols_for_dedupe = [
-        "authors",
-        "title",
-        "abstract",
-        "year",
-        "journal",
-        "doi",
-        "volume",
-        "pages",
-        "number",
-        "isbn",
-    ]
 
     # Check if we have all the required columns and add empty columns if missing.
-    for col in cols_for_dedupe:
+    for col in COLS_FOR_DEDUPE:
         if col not in col_names:
             all_column_spec[col] = column_spec[col]
             df.insert(5, col, "")

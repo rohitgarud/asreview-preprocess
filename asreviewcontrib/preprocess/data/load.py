@@ -1,24 +1,9 @@
-from asreview.exceptions import BadFileFormatError
 from asreview.data import load_data as asreview_load_data
-
-from asreviewcontrib.preprocess.io import xml_reader, io_utils
-
-
-# Additional column definitions required for deduplication
-DEDUPLICATION_COLUMN_DEFINITIONS = {
-    "record_id": ["record_id", "rec-number"],
-    "year": ["year"],
-    "ref_type": ["ref_type", "type_of_reference"],
-    "journal": ["journal"],
-    "volume": ["volume"],
-    "pages": ["pages", "start_page"],
-    "number": ["number", "issue"],
-    "isbn": ["isbn", "issn"],
-    "secondary_title": ["secondary_title", "secondary title", "secondary-title"],
-}
+from asreview.exceptions import BadFileFormatError
+from asreviewcontrib.preprocess.config import DEDUPLICATION_COLUMN_DEFINITIONS
+from asreviewcontrib.preprocess.io import io_utils, xml_reader
 
 
-# Load Data
 def load_data(input_filepath):
     """Load data from file, URL or plugin.
 
@@ -34,8 +19,8 @@ def load_data(input_filepath):
     except BadFileFormatError:
         try:
             df = asreview_load_data(
-                input_filepath,
-                reader=xml_reader.EndnoteXMLReader).df
+                input_filepath, reader=xml_reader.EndnoteXMLReader
+            ).df
         except Exception:
             raise BadFileFormatError
 

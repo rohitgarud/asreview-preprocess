@@ -1,9 +1,7 @@
 import pandas as pd
-from pyalex import Works
-
+from asreviewcontrib.preprocess.config import OPENALEX_QUERY_LIMIT
 from asreviewcontrib.preprocess.update_data.base import BaseUpdater
-
-OPENALEX_QUERY_LIMIT = 25
+from pyalex import Works
 
 
 class OpenAlexUpdater(BaseUpdater):
