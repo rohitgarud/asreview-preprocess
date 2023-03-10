@@ -1,6 +1,8 @@
+import logging
+
 import numpy as np
-from asreviewcontrib.preprocess.local_db.localdb import TinyLocalDB
 from asreviewcontrib.preprocess.deduplication import dd_utils
+from asreviewcontrib.preprocess.local_db.localdb import TinyLocalDB
 from asreviewcontrib.preprocess.update_data.openalex_updater import OpenAlexUpdater
 
 
@@ -47,6 +49,9 @@ def update_records(records_df, col_specs):
         | records_df[col_specs["isbn"]].isna()
     ) & records_df[col_specs["doi"]].notna()
 
+    n_missing_abstracts_before = _get_no_of_missing_abstracts(records_df, col_specs)
+    logging.info(f"{n_missing_abstracts_before} abstracts were missing.")
+
     doi_list = records_df[col_specs["doi"]][records_df["missing_data"]].values
     retrieved_metadata = updater.retrieve_metadata(doi_list)
     retrieved_records_df = updater.parse_metadata(retrieved_metadata)
@@ -61,4 +66,16 @@ def update_records(records_df, col_specs):
     # Update original df only where the data was missing and is retrieved
     updated_records_df = records_df.combine_first(retrieved_records_df)
 
+    n_missing_abstracts_after = _get_no_of_missing_abstracts(
+        updated_records_df, col_specs
+    )
+    logging.info(
+        f"{n_missing_abstracts_before - n_missing_abstracts_after} missing abstracts were retrieved.\n"
+    )
+    logging.info(f"{n_missing_abstracts_after} abstracts are still missing.")
+
     return updated_records_df
+
+
+def _get_no_of_missing_abstracts(records_df, col_specs):
+    return sum(records_df[col_specs["abstract"]].isna())

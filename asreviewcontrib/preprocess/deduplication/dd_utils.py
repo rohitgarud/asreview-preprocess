@@ -24,10 +24,10 @@ HTML_ENTITIES = [
 # Dictionary of journal name abbreviations and full forms
 with open("all_journal_abbreviations.csv", "r") as f:
     reader = csv.reader(f)
-    all_journal_abbreviations = {}
+    all_journal_abbr = {}
 
     for row in reader:
-        all_journal_abbreviations[row[0]] = row[1].encode("ascii", "ignore").decode()
+        all_journal_abbr[row[0]] = row[1].encode("ascii", "ignore").decode()
 
 
 # Clean different fields to unify them to a common format
@@ -86,7 +86,7 @@ def clean_journal(journal):
     # TODO: Handle Accents better
 
     try:
-        return all_journal_abbreviations[preprocess_journal]
+        return all_journal_abbr[preprocess_journal]
     except KeyError:
         return journal
 
