@@ -6,7 +6,7 @@ from asreviewcontrib.preprocess.local_db.localdb import TinyLocalDB
 from asreviewcontrib.preprocess.update_data.openalex_updater import OpenAlexUpdater
 
 
-def update_records(records_df, col_specs):
+def update_records(records_df, col_specs, updater=OpenAlexUpdater(TinyLocalDB())):
     """Find missing information and update records
 
     Parameters
@@ -15,9 +15,9 @@ def update_records(records_df, col_specs):
         Dataframe of citation records from imported dataset
     col_specs : dict
         Column definitions for mapping column names to standardized names
+    updater: Updater Class instance
+        Updater class instance with local database as input
     """
-    db = TinyLocalDB()
-    updater = OpenAlexUpdater(db)
 
     # Clean dois in case not already cleaned as they will be used to retrieve record metadata
     records_df[col_specs["doi"]] = records_df[col_specs["doi"]].apply(
