@@ -2,8 +2,12 @@ import logging
 
 import numpy as np
 import pandas as pd
-from asreview.io.utils import _standardize_dataframe
-from asreviewcontrib.preprocess.config import COLS_FOR_DEDUPE
+from asreview.config import COLUMN_DEFINITIONS
+from asreview.io.utils import _standardize_dataframe, type_from_column
+from asreviewcontrib.preprocess.config import (
+    COLS_FOR_DEDUPE,
+    DEDUPLICATION_COLUMN_DEFINITIONS,
+)
 
 
 def _standardize_dataframe_for_deduplication(df, column_spec={}):
@@ -70,3 +74,22 @@ def _standardize_dataframe_for_deduplication(df, column_spec={}):
     )
 
     return df, all_column_spec
+
+
+def _get_column_spec(df):
+    all_column_spec = {}
+
+    # map columns on column specification
+    col_names = list(df)
+    for column_name in col_names:
+
+        data_type = type_from_column(column_name, DEDUPLICATION_COLUMN_DEFINITIONS)
+        if data_type is not None:
+            all_column_spec[data_type] = column_name
+            continue
+
+        data_type = type_from_column(column_name, COLUMN_DEFINITIONS)
+        if data_type is not None:
+            all_column_spec[data_type] = column_name
+
+    return all_column_spec
