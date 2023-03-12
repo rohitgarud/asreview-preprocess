@@ -26,7 +26,23 @@ class CleanPipeline(BasePipeline):
         self.include = include
         self.exclude = exclude
 
+    def add(self, col_name, function):
+        """Add a cleaning function to the pipeline"""
+        self.pipeline.append((col_name, function))
+
     def pipe(self, data_df):
+        """Apply functions in the cleaning pipeline to the dataset
+
+        Parameters
+        ----------
+        data_df : pandas dataframe
+            uncleaned dataframe containing non uniform columns
+
+        Returns
+        -------
+        pandas dataframe
+            cleaned dataset with unified columns
+        """
         data_df = data_df.copy().fillna("")
         col_specs = io_utils._get_column_spec(data_df)
 
@@ -50,3 +66,9 @@ class CleanPipeline(BasePipeline):
 
         for col, clean_func in self.pipeline:
             data_df[col_specs[col]] = data_df[col_specs[col]].apply(clean_func)
+
+        data_df = data_df.sort_index()
+        data_df[col_specs["year"]] = data_df[col_specs["year"]].astype("object")
+        data_df = data_df.fillna("")
+
+        return data_df
