@@ -33,7 +33,7 @@ def _standardize_dataframe_for_deduplication(df, column_spec={}):
             all_column_spec[col] = column_spec[col]
             df.insert(5, col, "")
             logging.warning(
-                f"Unable to detect '{col}' in the dataset. An emplty column for '{col}' will be added and used for deduplication."
+                f"Unable to detect '{col}' in the dataset. An empty column for '{col}' will be added and used for deduplication."
             )
 
         # Replace NA values with empty strings

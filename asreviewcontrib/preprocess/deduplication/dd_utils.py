@@ -133,7 +133,7 @@ def clean_isbn(isbn):
     return isbn
 
 
-def get_first_author(authors):
+def _get_first_author(authors):
     first_author = []
     for item in authors.split():
         if len(item) == 1:
@@ -144,7 +144,7 @@ def get_first_author(authors):
     return first_author.upper()
 
 
-def get_short_title(title):
+def _get_short_title(title):
     short_title = []
     for word in title.split():
         if len(word) > 2:
