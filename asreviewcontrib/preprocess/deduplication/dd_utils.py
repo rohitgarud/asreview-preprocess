@@ -28,6 +28,7 @@ with open("all_journal_abbreviations.csv", "r") as f:
 
     for row in reader:
         all_journal_abbr[row[0]] = row[1].encode("ascii", "ignore").decode()
+    # TODO: Create SQL database of journal abbreviations
 
 
 # Clean different fields to unify them to a common format
@@ -49,6 +50,12 @@ def clean_abstract(abstract):
     # Remove copywrite information
     # abstract = re.sub(r"COPYRIGHT.*", " ", abstract)
     return abstract
+
+
+def clean_year(year):
+    """Unify year to a common format."""
+    # TODO: add some checks to year
+    return year
 
 
 def clean_doi(doi):
@@ -111,6 +118,12 @@ def clean_volume(volume):
     """Unify volume to a common format."""
     volume = volume.lower().replace("(no pagination)", "")
     return volume
+
+
+def clean_number(number):
+    """Unify number to a common format."""
+    # TODO: remove unnecessary things from numbers
+    return number
 
 
 def clean_isbn(isbn):
