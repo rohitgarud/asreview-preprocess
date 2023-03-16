@@ -56,7 +56,7 @@ setup(
         ],
         "asreview.preprocess.deduplicators": [
             "asr = asreviewcontrib.preprocess.deduplication.methods.asr:ASRDedup",
-            "asr = asreviewcontrib.preprocess.deduplication.methods.endnote_default:ENDefaultDedup",
+            "endnote = asreviewcontrib.preprocess.deduplication.methods.endnote_default:ENDefaultDedup",
         ],
     },
     project_urls={
