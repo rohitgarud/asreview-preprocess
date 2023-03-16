@@ -5,8 +5,7 @@ from io import open
 from os import path
 
 # Always prefer setuptools over distutils
-from setuptools import find_namespace_packages
-from setuptools import setup
+from setuptools import find_namespace_packages, setup
 
 import versioneer
 
@@ -36,25 +35,29 @@ setup(
     ],
     keywords="asreview preprocess",
     packages=find_namespace_packages(include=["asreviewcontrib.*"]),
-    install_requires=["asreview>=1,<2", "unidecode", "tinydb"],
-    extras_require={
-        "abstract_finder": ["pyalex"],
-        "gui": [
-            "flask-SQLalchemy-3.0.3",
-            "flask-bootstrap",
-            "flask-wtf",
-        ],
-        "all": [
-            "pyalex",
-            "flask-SQLalchemy-3.0.3",
-            "flask-bootstrap",
-            "flask-wtf",
-        ],
-    },
+    install_requires=[
+        "asreview>=1,<2",
+        "unidecode",
+        "tinydb",
+        "pyalex",
+        "recordlinkage",
+    ],
+    extras_require={},
     entry_points={
         "asreview.entry_points": [
             "preprocess = asreviewcontrib.preprocess.entry_points.entrypoint:PreprocessEntryPoint",
-        ]
+        ],
+        "asreview.preprocess.entry_points": [],
+        "asreview.preprocess.updaters": [
+            "openalex = asreviewcontrib.preprocess.update_data.openalex_updater:OpenAlexUpdater",
+        ],
+        "asreview.preprocess.localdbs": [
+            "tinydb = asreviewcontrib.preprocess.local_db.tinylocaldb:TinyLocalDB",
+        ],
+        "asreview.preprocess.deduplicators": [
+            "asr = asreviewcontrib.preprocess.deduplication.methods.asr:ASRDedup",
+            "asr = asreviewcontrib.preprocess.deduplication.methods.endnote_default:ENDefaultDedup",
+        ],
     },
     project_urls={
         "Bug Reports": "https://github.com/rohitgarud/asreview-preprocess/issues",

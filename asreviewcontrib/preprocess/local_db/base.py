@@ -17,3 +17,9 @@ class BaseLocalDB(ABC):
         """Add retrieved records to local database"""
 
         raise NotImplementedError
+
+    @abstractmethod
+    def _get_localdb_path(self):
+        """Get path where the local database is saved"""
+
+        raise NotImplementedError
