@@ -1,5 +1,5 @@
-from tinydb import TinyDB, Query
 from asreviewcontrib.preprocess.local_db.base import BaseLocalDB
+from tinydb import Query, TinyDB
 
 
 class TinyLocalDB(BaseLocalDB):
@@ -47,9 +47,10 @@ class TinyLocalDB(BaseLocalDB):
         doi_list : list
             List of dois
         """
+        Record = Query()
         for doi in doi_list:
             try:
-                self.db.insert(retrieved_records[doi])
+                self.db.upsert(retrieved_records[doi], Record.doi == doi)
             except KeyError:
                 pass
 
@@ -57,5 +58,3 @@ class TinyLocalDB(BaseLocalDB):
         localdb_path = "./records.json"
         # TODO: Save local database in safe location for future use
         return localdb_path
-
-
