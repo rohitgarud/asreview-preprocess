@@ -1,26 +1,28 @@
-from asreviewcontrib.preprocess.deduplication.methods.asr import ASRDedup
+import pandas as pd
+from asreviewcontrib.preprocess.utils import _deduplicator_class_from_entry_point
 
 
-def apply_dedup(records_df, method="asr"):
+def apply_dedup(
+    records_df: pd.DataFrame, method="asr", drop_duplicates=True
+) -> pd.DataFrame:
     """Apply deduplication to remove duplicate records
 
     Parameters
     ----------
-    records_df : Pandas Dataframe
-        Dataset with duplicate records
+    records_df : pd.DataFrame
+        Dataset with possible duplicate records
     method : str, optional
-        deduplication method, by default "asr"
-        Available methods [asr, endnote]
+        deduplication method
+        Available methods [asr, endnote], by default "asr"
+    drop_duplicates : bool, optional
+        Remove duplicate records from dataset, by default True
+        if False, adds keep_remove column to dataset for indicating duplicates
 
     Returns
     -------
-    Pandas Dataframe
-        Deduplicated Dataset
+    pd.DataFrame
+        _description_
     """
+    deduplicator = _deduplicator_class_from_entry_point(method)
 
-    if method == "asr":
-        deduplicator = ASRDedup()
-    else:
-        raise NotImplementedError
-
-    return deduplicator.dedup(records_df, drop_duplicates=True)
+    return deduplicator.dedup(records_df, drop_duplicates=drop_duplicates)

@@ -258,7 +258,7 @@ class BaseDedup(ABC):
 
         if drop_duplicates:
             df = df.loc[np.where(df["keep_remove"] == "KEEP")].drop(
-                "keep_remove", axis=1
+                ["keep_remove", "duplicate_group_id"], axis=1
             )
 
         return df

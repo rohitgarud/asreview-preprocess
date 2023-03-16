@@ -22,7 +22,7 @@ def update_records(
     update_method: str
         Updater, by default "openalex"
     local_database:
-        Local database for retrieving and saving matadata, by default "tiny"
+        Local database for retrieving and saving matadata, by default "tinydb"
     """
 
     db = _localdb_class_from_entry_point(local_database)
