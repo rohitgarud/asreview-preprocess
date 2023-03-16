@@ -11,11 +11,11 @@ class OpenAlexUpdater(BaseUpdater):
 
     name = "openalex-updater"
 
-    def __init__(self, db):
+    def __init__(self):
         super(OpenAlexUpdater, self).__init__()
-        self.db = db
+        self.db = None
 
-    def retrieve_metadata(self, doi_list):
+    def retrieve_metadata(self, db, doi_list):
         """Retrive metadata for the records using doi
 
         Records are either retrieved from local database if available
@@ -32,6 +32,7 @@ class OpenAlexUpdater(BaseUpdater):
             Dictionary of retrieved metadata with dois as keys
         """
         # Try to retrieve records from local database if available
+        self.db = db
         retrieved_metadata, doi_list = self.db.retrieve_records(doi_list)
 
         doi_chunks = (

@@ -2,8 +2,10 @@ import logging
 
 import numpy as np
 from asreviewcontrib.preprocess.deduplication import dd_utils
-from asreviewcontrib.preprocess.local_db.tinylocaldb import TinyLocalDB
-from asreviewcontrib.preprocess.update_data.openalex_updater import OpenAlexUpdater
+from asreviewcontrib.preprocess.utils import (
+    _localdb_class_from_entry_point,
+    _updater_class_from_entry_point,
+)
 
 
 def update_records(
@@ -22,13 +24,9 @@ def update_records(
     local_database:
         Local database for retrieving and saving matadata, by default "tiny"
     """
-    if local_database == "tinydb":
-        db = TinyLocalDB()
-    if update_method == "openalex":
-        updater = OpenAlexUpdater(db)
 
-    # TODO: Add better approach to register and retrieve new updaters
-    # and database classes
+    db = _localdb_class_from_entry_point(local_database)
+    updater = _updater_class_from_entry_point(update_method)
 
     # Clean dois in case not already cleaned as they will be used
     # to retrieve record metadata
@@ -66,7 +64,7 @@ def update_records(
     logging.info(f"{n_missing_abstracts_before} abstracts were missing.")
 
     doi_list = records_df[col_specs["doi"]][records_df["missing_data"]].values
-    retrieved_metadata = updater.retrieve_metadata(doi_list)
+    retrieved_metadata = updater.retrieve_metadata(db, doi_list)
     retrieved_records_df = updater.parse_metadata(retrieved_metadata)
 
     retrieved_records_df = (

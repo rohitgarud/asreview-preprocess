@@ -7,7 +7,7 @@ class BaseUpdater(ABC):
     name = "base-updater"
 
     @abstractmethod
-    def retrieve_metadata(doi_list):
+    def retrieve_metadata(db, doi_list):
         """Retrive metadata for the records using doi
 
         Records are either retrieved from local database if available
@@ -15,6 +15,8 @@ class BaseUpdater(ABC):
 
         Parameters
         ----------
+        db : Local Database Instance
+            Local database to retrieve from and add matadata for future use
         doi_list : list
             List of dois to retrieve metadata for
 
