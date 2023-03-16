@@ -59,4 +59,3 @@ class TinyLocalDB(BaseLocalDB):
         return localdb_path
 
 
-# TODO: Add classes for other NoSQL databases like MongoDB and ElasticSearch
