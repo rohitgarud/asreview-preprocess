@@ -27,13 +27,14 @@ def _standardize_dataframe_for_deduplication(df, column_spec={}):
 
     col_names = list(all_column_spec)
 
-    # Check if we have all the required columns and add empty columns if missing.
+    # Check if we have all the required columns and add empty columns if missing
     for col in COLS_FOR_DEDUPE:
         if col not in col_names:
             all_column_spec[col] = column_spec[col]
             df.insert(5, col, "")
             logging.warning(
-                f"Unable to detect '{col}' in the dataset. An empty column for '{col}' will be added and used for deduplication."
+                f"Unable to detect '{col}' in the dataset. An empty column for"
+                f" '{col}' will be added and may be used for deduplication."
             )
 
         # Replace NA values with empty strings
@@ -50,7 +51,7 @@ def _standardize_dataframe_for_deduplication(df, column_spec={}):
     # Use secondary title as journal if journal name is missing
     if "secondary_title" in col_names:
         logging.warning(
-            "Secondary title column will be used for filling missing values in Journal column"
+            "Secondary title column will be used for filling missing values in 'Journal' column"
         )
         # Replace NA values with empty strings
         df[all_column_spec["secondary_title"]] = np.where(

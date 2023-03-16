@@ -2,11 +2,13 @@ import logging
 
 import numpy as np
 from asreviewcontrib.preprocess.deduplication import dd_utils
-from asreviewcontrib.preprocess.local_db.localdb import TinyLocalDB
+from asreviewcontrib.preprocess.local_db.tinylocaldb import TinyLocalDB
 from asreviewcontrib.preprocess.update_data.openalex_updater import OpenAlexUpdater
 
 
-def update_records(records_df, col_specs, updater=OpenAlexUpdater(TinyLocalDB())):
+def update_records(
+    records_df, col_specs, update_method="openalex", local_database="tinydb"
+):
     """Find missing information and update records
 
     Parameters
@@ -15,11 +17,21 @@ def update_records(records_df, col_specs, updater=OpenAlexUpdater(TinyLocalDB())
         Dataframe of citation records from imported dataset
     col_specs : dict
         Column definitions for mapping column names to standardized names
-    updater: Updater Class instance
-        Updater class instance with local database as input
+    update_method: str
+        Updater, by default "openalex"
+    local_database:
+        Local database for retrieving and saving matadata, by default "tiny"
     """
+    if local_database == "tinydb":
+        db = TinyLocalDB()
+    if update_method == "openalex":
+        updater = OpenAlexUpdater(db)
 
-    # Clean dois in case not already cleaned as they will be used to retrieve record metadata
+    # TODO: Add better approach to register and retrieve new updaters
+    # and database classes
+
+    # Clean dois in case not already cleaned as they will be used
+    # to retrieve record metadata
     records_df[col_specs["doi"]] = records_df[col_specs["doi"]].apply(
         dd_utils.clean_doi
     )
@@ -35,7 +47,8 @@ def update_records(records_df, col_specs, updater=OpenAlexUpdater(TinyLocalDB())
         .applymap(lambda val: np.nan if len(val) == 0 else val)
     )
 
-    # Find records where DOI is available and fields required for deduplication are missing
+    # Find records where DOI is available and fields required
+    # for deduplication are missing
     records_df["missing_data"] = (
         records_df[col_specs["title"]].isna()
         | records_df[col_specs["authors"]].isna()
@@ -78,4 +91,5 @@ def update_records(records_df, col_specs, updater=OpenAlexUpdater(TinyLocalDB())
 
 
 def _get_no_of_missing_abstracts(records_df, col_specs):
+    """Gives number of missing abstracts in the dataset"""
     return sum(records_df[col_specs["abstract"]].isna())

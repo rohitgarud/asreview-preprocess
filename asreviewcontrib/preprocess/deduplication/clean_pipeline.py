@@ -28,9 +28,9 @@ class CleanPipeline(BasePipeline):
 
     def add(self, col_name, function):
         """Add a cleaning function to the pipeline"""
-        self.pipeline.append((col_name, function))
+        self._pipeline.append((col_name, function))
 
-    def pipe(self, data_df):
+    def apply_pipe(self, data_df):
         """Apply functions in the cleaning pipeline to the dataset
 
         Parameters
@@ -64,11 +64,15 @@ class CleanPipeline(BasePipeline):
         for col_name in apply_cleaning:
             self.add(col_name, clean_funcs[col_name])
 
-        for col, clean_func in self.pipeline:
+        for col, clean_func in self._pipeline:
             data_df[col_specs[col]] = data_df[col_specs[col]].apply(clean_func)
 
         data_df = data_df.sort_index()
-        data_df[col_specs["year"]] = data_df[col_specs["year"]].astype("object")
+        try:
+            data_df[col_specs["year"]] = data_df[col_specs["year"]].astype("object")
+        except KeyError:
+            pass
+
         data_df = data_df.fillna("")
 
         return data_df
