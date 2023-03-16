@@ -66,8 +66,8 @@ class BaseDedup(ABC):
 
         return combined_col_names
 
-    def _get_candidate_links(self, block_cols):
-        """Get candidate links using records linkage blocking method of indexing"""
+    def _get_candidate_pairs(self, block_cols):
+        """Get candidate pairs using records linkage blocking method of indexing"""
         # Replacing empty strings with NA so that Record Linkage doesnot
         # consider two empty strings as a match while blocking
         string_columns = self.data_df.select_dtypes("object").columns
@@ -81,11 +81,11 @@ class BaseDedup(ABC):
         indexer = recordlinkage.Index()
         for col in block_cols:
             indexer.block(left_on=col)
-        candidate_links = indexer.index(self.data_df)
+        candidate_pairs = indexer.index(self.data_df)
 
-        return candidate_links
+        return candidate_pairs
 
-    def _get_similarity_features(self, candidate_links, method="jarowinkler"):
+    def _get_similarity_features(self, candidate_pairs, method="jarowinkler"):
         """Calculate similarity metrics for all columns for candidate pairs
         using given method (default = jarowinkler)"""
         compare_cl = recordlinkage.Compare()
@@ -96,26 +96,30 @@ class BaseDedup(ABC):
                 method=method,
                 label=col,
             )
-        features = compare_cl.compute(candidate_links, self.data_df)
+        features = compare_cl.compute(candidate_pairs, self.data_df)
 
         return features
 
-    def _get_pairs_w_features(self, candidate_links, features):
+    def _get_pairs_df(self, candidate_pairs):
         """Create pairs dataframe with single row having values of different
-        columns for the records in the pair and their corresponding similarity
-        features"""
+        columns for the records in the pair"""
         pairs_df = pd.DataFrame()
 
-        pairs_df["record_id1"] = [id1 for id1, _ in candidate_links]
-        pairs_df["record_id2"] = [id2 for _, id2 in candidate_links]
+        pairs_df["record_id1"] = [id1 for id1, _ in candidate_pairs]
+        pairs_df["record_id2"] = [id2 for _, id2 in candidate_pairs]
 
-        idx1 = [id1 - 1 for id1, _ in candidate_links]
-        idx2 = [id2 - 1 for _, id2 in candidate_links]
+        idx1 = [id1 - 1 for id1, _ in candidate_pairs]
+        idx2 = [id2 - 1 for _, id2 in candidate_pairs]
         for col in COLS_FOR_DEDUPE:
             pairs_df[f"{col}1"] = self.data_df[self.col_specs[col]].values[idx1]
             pairs_df[f"{col}2"] = self.data_df[self.col_specs[col]].values[idx2]
 
+        return pairs_df
+
+    def _get_pairs_w_features(self, pairs_df, features):
+        """Add similarity features for columns"""
         pairs_df = pairs_df.join(features.reset_index())
+        # For better visualisation
         pairs_df = pairs_df[PAIRS_COLUMNS]
 
         return pairs_df
@@ -123,30 +127,50 @@ class BaseDedup(ABC):
     def _handle_missing_feature_values(self, pairs_df):
         """Handle missing feature values based on column values of pairs
         in pairs dataframe"""
-        pairs_df["abstract"] = np.where(
-            pairs_df["abstract1"].isna() & pairs_df["abstract2"].isna(),
-            0,
-            pairs_df["abstract"],
-        )
-        pairs_df["pages"] = np.where(
-            pairs_df["pages1"].isna() & pairs_df["pages2"].isna(), 1, pairs_df["pages"]
-        )
-        pairs_df["volume"] = np.where(
-            pairs_df["volume1"].isna() & pairs_df["volume2"].isna(),
-            1,
-            pairs_df["volume"],
-        )
-        pairs_df["number"] = np.where(
-            pairs_df["number1"].isna() & pairs_df["number2"].isna(),
-            1,
-            pairs_df["number"],
-        )
-        pairs_df["doi"] = np.where(
-            pairs_df["doi1"].isna() & pairs_df["doi2"].isna(), 0, pairs_df["doi"]
-        )
-        pairs_df["isbn"] = np.where(
-            pairs_df["isbn1"].isna() & pairs_df["isbn2"].isna(), 0, pairs_df["isbn"]
-        )
+        try:
+            pairs_df["abstract"] = np.where(
+                pairs_df["abstract1"].isna() & pairs_df["abstract2"].isna(),
+                0,
+                pairs_df["abstract"],
+            )
+        except KeyError:
+            pass
+        try:
+            pairs_df["pages"] = np.where(
+                pairs_df["pages1"].isna() & pairs_df["pages2"].isna(),
+                1,
+                pairs_df["pages"],
+            )
+        except KeyError:
+            pass
+        try:
+            pairs_df["volume"] = np.where(
+                pairs_df["volume1"].isna() & pairs_df["volume2"].isna(),
+                1,
+                pairs_df["volume"],
+            )
+        except KeyError:
+            pass
+        try:
+            pairs_df["number"] = np.where(
+                pairs_df["number1"].isna() & pairs_df["number2"].isna(),
+                1,
+                pairs_df["number"],
+            )
+        except KeyError:
+            pass
+        try:
+            pairs_df["doi"] = np.where(
+                pairs_df["doi1"].isna() & pairs_df["doi2"].isna(), 0, pairs_df["doi"]
+            )
+        except KeyError:
+            pass
+        try:
+            pairs_df["isbn"] = np.where(
+                pairs_df["isbn1"].isna() & pairs_df["isbn2"].isna(), 0, pairs_df["isbn"]
+            )
+        except KeyError:
+            pass
 
         return pairs_df
 
@@ -203,7 +227,20 @@ class BaseDedup(ABC):
 
         df = df.loc[arrange_rids]
         df["duplicate_group_id"] = group_tags
-        df = df.sort_values(["duplicate_group_id", "abstract", "year"], ascending=False)
+
+        # Sort using abstract and year to get latest papers having abstracts
+        # from the group of duplicates
+        try:
+            df = df.sort_values(
+                [
+                    "duplicate_group_id",
+                    self.col_specs["abstract"],
+                    self.col_specs["year"],
+                ],
+                ascending=False,
+            )
+        except KeyError:
+            pass
 
         groups_seen = []
         keep_remove = []

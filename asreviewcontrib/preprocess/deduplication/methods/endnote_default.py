@@ -4,14 +4,11 @@ from asreviewcontrib.preprocess.deduplication.clean_pipeline import CleanPipelin
 from asreviewcontrib.preprocess.io import io_utils
 
 
-class ASRDedup(BaseDedup):
-    """Class for implementing deduplication strategy used by ASReview Datatools
-
-    Currently only working with dois as pid
-    """
+class ENDefaultDedup(BaseDedup):
+    """Class for implementing default deduplication strategy used by Endnote"""
 
     def __init__(self):
-        super(ASRDedup, self).__init__()
+        super(ENDefaultDedup, self).__init__()
         self.data_df = None
         self.col_specs = None
 
@@ -21,23 +18,22 @@ class ASRDedup(BaseDedup):
             [self.col_specs[col] for col in COLS_FOR_DEDUPE]
         ]
 
-        clean = CleanPipeline(include=["title", "abstract", "doi"])
+        clean = CleanPipeline(include=["authors", "year", "title"])
         self.data_df = clean.apply_pipe(self.data_df)
 
         # Indexing - blocking
         # List of tuples of columns to combine for indexing
-        concat_columns = [("title", "abstract")]
-        combined_col_names = self._create_combined_columns(concat_columns)
-        block_cols = combined_col_names.append(self.col_specs["doi"])
-        candidate_links = self._get_candidate_links(self, block_cols)
+        concat_columns = [("authors", "year", "title")]
+        block_cols = self._create_combined_columns(concat_columns)
+        candidate_pairs = self._get_candidate_pairs(block_cols)
 
         # Comparing
-        features = self._get_similarity_features(candidate_links)
-        pairs_df = self._get_pairs_w_features(candidate_links, features)
-        pairs_df = self._handle_missing_feature_values(pairs_df)
+        pairs_df = self._get_pairs_df(candidate_pairs)
 
         # Filtering
-        # pairs are automatically filtered during blocking for this method
+        # pairs are automatically filtered during blocking for
+        # the Endnote default method based on only "authors",
+        # "year" and "title"
         pairs_rids = self._get_pair_rids(pairs_df)
         groups_rids = self._get_groups_from_pairs(pairs_rids)
 
