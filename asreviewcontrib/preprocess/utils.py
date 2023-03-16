@@ -28,51 +28,51 @@ def get_entry_points(entry_name="asreview.preprocess.entry_points"):
     return {entry.name: entry for entry in pkg_resources.iter_entry_points(entry_name)}
 
 
-def _updater_class_from_entry_point(method, entry_name="asreview.preprocess.updaters"):
+def _updater_class_from_entry_point(updater, entry_name="asreview.preprocess.updaters"):
     entry_points = get_entry_points(entry_name)
     try:
-        return entry_points[method].load()
+        return entry_points[updater].load()
     except KeyError:
         raise ValueError(
-            f"Error: method '{method}' is not implemented for entry point "
+            f"Error: updater '{updater}' is not implemented for entry point "
             f"{entry_name}."
         )
     except ImportError as e:
         raise ValueError(
-            f"Failed to import '{method}' updater ({entry_name}) "
+            f"Failed to import '{updater}' updater ({entry_name}) "
             f"with the following error:\n{e}"
         )
 
 
-def _localdb_class_from_entry_point(suffix, entry_name="asreview.preprocess.localdbs"):
+def _localdb_class_from_entry_point(localdb, entry_name="asreview.preprocess.localdbs"):
     entry_points = get_entry_points(entry_name)
     try:
-        return entry_points[suffix].load()
+        return entry_points[localdb].load()
     except KeyError:
         raise ValueError(
-            f"Error: suffix '{suffix}' is not implemented for entry point "
+            f"Error: localdb '{localdb}' is not implemented for entry point "
             f"{entry_name}."
         )
     except ImportError as e:
         raise ValueError(
-            f"Failed to import '{suffix}' localdb ({entry_name}) "
+            f"Failed to import '{localdb}' localdb ({entry_name}) "
             f"with the following error:\n{e}"
         )
 
 
 def _deduplicator_class_from_entry_point(
-    suffix, entry_name="asreview.preprocess.deduplicators"
+    deduplicator, entry_name="asreview.preprocess.deduplicators"
 ):
     entry_points = get_entry_points(entry_name)
     try:
-        return entry_points[suffix].load()
+        return entry_points[deduplicator].load()
     except KeyError:
         raise ValueError(
-            f"Error: suffix '{suffix}' is not implemented for entry point "
+            f"Error: deduplicator '{deduplicator}' is not implemented for entry point "
             f"{entry_name}."
         )
     except ImportError as e:
         raise ValueError(
-            f"Failed to import '{suffix}' deduplicator ({entry_name}) "
+            f"Failed to import '{deduplicator}' deduplicator ({entry_name}) "
             f"with the following error:\n{e}"
         )
