@@ -50,7 +50,7 @@ class OpenAlexUpdater(BaseUpdater):
 
         return retrieved_metadata
 
-    def parse_metadata(retrieved_metadata):
+    def parse_metadata(self, retrieved_metadata):
         """Parse metadata and create pandas dataframe with required columns
 
         Parameters

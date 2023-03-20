@@ -77,7 +77,7 @@ def clean_pages(pages):
 
     if pages:
         pages = re.sub(r"[^0-9-]", "", pages)
-        start, end = re.findall(r"(?P<start>[0-9]*)-?(?P<end>[0-9]*)", pages)[0]
+        start, end = re.findall(r"(?P<start>\d*)-?(?P<end>\d*)", pages)[0]
         if end:
             len_diff = len(start) - len(end)
             if len_diff > 0:
@@ -128,8 +128,7 @@ def clean_number(number):
 
 def clean_isbn(isbn):
     """Unify ISBNs/ISSNs to a common format."""
-    isbn = re.sub(r"\s\((Print|Electronic)\).*", "", isbn)
-    isbn = re.sub(r"\r", "; ", isbn)
+    isbn = re.sub(r"\s\((Print|Electronic)\).*", "", isbn).replace(r"\r", "; ")
     return isbn
 
 

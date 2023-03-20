@@ -1,18 +1,17 @@
 import logging
 import os
-from gevent.pywsgi import WSGIServer
 
-from flask import Flask, render_template, request, redirect, url_for, flash
-from flask_cors import CORS
+from asreview.webapp.start_flask import _check_port_in_use, _open_browser
+from flask import Flask, flash, redirect, render_template, request, url_for
 from flask.json import jsonify
+from flask_cors import CORS
+from gevent.pywsgi import WSGIServer
 from werkzeug.exceptions import InternalServerError
 from werkzeug.utils import secure_filename
 
-from asreview.webapp.start_flask import _check_port_in_use, _open_browser
-
 try:
-    from flask_sqlalchemy import SQLAlchemy
     from flask_bootstrap import Bootstrap
+    from flask_sqlalchemy import SQLAlchemy
 except ImportError:
     print(
         "The GUI requires additional packages to be installed. Install optional ASReview-preprocess dependencies specific for GUI with 'pip install asreview-preprocess[gui]' or all dependencies with 'pip install asreview-preprocess[all]'"
@@ -78,14 +77,14 @@ def create_app(**kwargs):
             if "file" not in request.files:
                 flash("No file part")
                 return redirect(request.url)
-            file = request.files["file"]
+            upload_file = request.files["file"]
 
-            if file.filename == "":
+            if upload_file.filename == "":
                 flash("No selected file")
                 return redirect(request.url)
-            if file and allowed_file(file.filename):
-                filename = secure_filename(file.filename)
-                file.save(os.path.join(app.config["UPLOAD_FOLDER"], filename))
+            if upload_file and allowed_file(upload_file.filename):
+                filename = secure_filename(upload_file.filename)
+                upload_file.save(os.path.join(app.config["UPLOAD_FOLDER"], filename))
                 return redirect(request.url)
         return """
         <!doctype html>
@@ -108,7 +107,6 @@ def launch_gui(args):
     # app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///preprocess.db"
     # app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
     # db = SQLAlchemy(app)
-
     # ssl certificate, key and protocol
     certfile = args.certfile
     keyfile = args.keyfile
@@ -124,7 +122,7 @@ def launch_gui(args):
     port = args.port
     port_retries = args.port_retries
     # if port is already taken find another one
-    if not os.environ.get("FLASK_ENV", "") == "development":
+    if os.environ.get("FLASK_ENV", "") != "development":
         original_port = port
         while _check_port_in_use(host, port) is True:
             old_port = port

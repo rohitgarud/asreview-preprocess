@@ -210,7 +210,7 @@ class PreprocessEntryPoint(BaseEntryPoint):
                 "subcommand",
                 nargs="?",
                 default=None,
-                help=f"Available commands:\n\n" f"{AVAILABLE_COMMANDS}",
+                help=f"Available commands:\n\n {AVAILABLE_COMMANDS}",
             )
 
             parser.add_argument(

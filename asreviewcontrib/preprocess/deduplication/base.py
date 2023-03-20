@@ -174,7 +174,7 @@ class BaseDedup(ABC):
 
         return pairs_df
 
-    def _get_pair_rids(pairs_df):
+    def _get_pair_rids(self, pairs_df):
         """Get record_ids of pairs from the pairs dataframe"""
         pairs_rids = [
             tuple(sorted(pair))
@@ -183,7 +183,7 @@ class BaseDedup(ABC):
 
         return pairs_rids
 
-    def _get_groups_from_pairs(pair_rids):
+    def _get_groups_from_pairs(self, pair_rids):
         """Get groups of duplicate records from pairs"""
         groups = []
 
@@ -206,7 +206,7 @@ class BaseDedup(ABC):
         groups = [tuple(sorted(group)) for group in groups]
         return groups
 
-    def _get_pairs_from_groups(groups):
+    def _get_pairs_from_groups(self, groups):
         """Get all pairs of duplicate records from groups"""
         pairs = []
 

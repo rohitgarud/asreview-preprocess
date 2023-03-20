@@ -87,10 +87,7 @@ class EndnoteXMLReader:
                 abstract = record.find("abstract")[0].text
             except (AttributeError, TypeError):
                 abstract = None
-            # try:
-            #     label = record.find("label")[0].text
-            # except (AttributeError, TypeError):
-            #     label = None
+
             dataset_list.append(
                 {
                     "recordID": record_id,
