@@ -49,6 +49,7 @@ setup(
         ],
         "asreview.preprocess.entry_points": [],
         "asreview.preprocess.updaters": [
+            "crossref = asreviewcontrib.preprocess.update_data.crossref_doi_updater:CrossrefDOIUpdater",
             "openalex = asreviewcontrib.preprocess.update_data.openalex_updater:OpenAlexUpdater",
         ],
         "asreview.preprocess.localdbs": [

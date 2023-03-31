@@ -44,3 +44,15 @@ class BaseUpdater(ABC):
         """
 
         raise NotImplementedError
+
+
+class BaseDOIUpdater(ABC):
+    """Abstract class for doi updater finding missing dois"""
+
+    name = "base-doi-updater"
+
+    @abstractmethod
+    def retrieve_dois(input_data):
+        """Retrieve missing dois"""
+
+        raise NotImplementedError

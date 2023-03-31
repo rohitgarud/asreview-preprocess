@@ -1,15 +1,16 @@
 import logging
 
 import numpy as np
+from asreviewcontrib.preprocess import utils
 from asreviewcontrib.preprocess.deduplication import dd_utils
-from asreviewcontrib.preprocess.utils import (
-    _localdb_class_from_entry_point,
-    _updater_class_from_entry_point,
-)
+from asreviewcontrib.preprocess.io import io_utils
 
 
 def update_records(
-    records_df, col_specs, update_method="openalex", local_database="tinydb"
+    records_df,
+    doi_update_method="crossref",
+    data_update_method="openalex",
+    local_database="tinydb",
 ):
     """Find missing information and update records
 
@@ -17,16 +18,17 @@ def update_records(
     ----------
     records_df : pandas dataframe
         Dataframe of citation records from imported dataset
-    col_specs : dict
-        Column definitions for mapping column names to standardized names
-    update_method: str
-        Updater, by default "openalex"
+    data_update_method: str
+        Data Updater, by default "openalex"
     local_database:
         Local database for retrieving and saving matadata, by default "tinydb"
     """
 
-    db = _localdb_class_from_entry_point(local_database)
-    updater = _updater_class_from_entry_point(update_method)
+    col_specs = io_utils._get_column_spec(records_df)
+
+    db = utils._localdb_class_from_entry_point(local_database)
+    doi_updater = utils._updater_class_from_entry_point(doi_update_method)
+    data_updater = utils._updater_class_from_entry_point(data_update_method)
 
     # Clean dois in case not already cleaned as they will be used
     # to retrieve record metadata
@@ -45,6 +47,13 @@ def update_records(
         .applymap(lambda val: np.nan if len(val) == 0 else val)
     )
 
+    # Find records where title and year are available and doi is missing
+    records_df["missing_doi"] = (
+        records_df[col_specs["title"]].notna() & records_df[col_specs["year"]].notna()
+    ) & records_df[col_specs["doi"]].isna()
+
+    n_missing_dois_before = _get_no_of_missing_dois(records_df, col_specs)
+
     # Find records where DOI is available and fields required
     # for deduplication are missing
     records_df["missing_data"] = (
@@ -53,7 +62,6 @@ def update_records(
         | records_df[col_specs["abstract"]].isna()
         | records_df[col_specs["year"]].isna()
         | records_df[col_specs["journal"]].isna()
-        | records_df[col_specs["doi"]].isna()
         | records_df[col_specs["pages"]].isna()
         | records_df[col_specs["volume"]].isna()
         | records_df[col_specs["number"]].isna()
@@ -61,11 +69,10 @@ def update_records(
     ) & records_df[col_specs["doi"]].notna()
 
     n_missing_abstracts_before = _get_no_of_missing_abstracts(records_df, col_specs)
-    logging.info(f"{n_missing_abstracts_before} abstracts were missing.")
 
     doi_list = records_df[col_specs["doi"]][records_df["missing_data"]].values
-    retrieved_metadata = updater.retrieve_metadata(db, doi_list)
-    retrieved_records_df = updater.parse_metadata(retrieved_metadata)
+    retrieved_metadata = data_updater.retrieve_metadata(db, doi_list)
+    retrieved_records_df = data_updater.parse_metadata(retrieved_metadata)
 
     retrieved_records_df = (
         records_df[col_specs["doi"]]
@@ -81,9 +88,10 @@ def update_records(
         updated_records_df, col_specs
     )
     logging.info(
+        f"{n_missing_abstracts_before} abstracts were missing.\n"
         f"{n_missing_abstracts_before - n_missing_abstracts_after} missing abstracts were retrieved.\n"
+        f"{n_missing_abstracts_after} abstracts are still missing.\n"
     )
-    logging.info(f"{n_missing_abstracts_after} abstracts are still missing.")
 
     return updated_records_df
 
@@ -91,3 +99,8 @@ def update_records(
 def _get_no_of_missing_abstracts(records_df, col_specs):
     """Gives number of missing abstracts in the dataset"""
     return sum(records_df[col_specs["abstract"]].isna())
+
+
+def _get_no_of_missing_dois(records_df, col_specs):
+    """Gives number of missing DOIs in the dataset"""
+    return sum(records_df[col_specs["doi"]].isna())
