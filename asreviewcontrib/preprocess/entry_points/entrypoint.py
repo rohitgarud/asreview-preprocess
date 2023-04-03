@@ -3,18 +3,17 @@ import os
 from datetime import datetime
 
 from asreview.entry_points import BaseEntryPoint
-from asreviewcontrib.preprocess.abstract_finder import find_missing_abstracts
-from asreviewcontrib.preprocess.deduplication import deduplication
+from asreviewcontrib.preprocess.deduplication.dedup import apply_dedup
 from asreviewcontrib.preprocess.entry_points import ep_utils
-from asreviewcontrib.preprocess.webapp.gui import launch_gui
+from asreviewcontrib.preprocess.update_data.update import update_records
 
-AVAILABLE_COMMANDS = ["launch_gui", "dedup", "abstract_finder"]
+AVAILABLE_COMMANDS = ["dedup", "update"]
 HOST_NAME = "localhost"
 PORT_NUMBER = 5000
 
 
 class PreprocessEntryPoint(BaseEntryPoint):
-    description = "Preprocess records from input dataset including deduplication, finding missing abstracts"
+    description = "Preprocess records from input dataset including merging multiple datasets, finding missing data, deduplication"
     extension_name = "asreview-preprocess"
 
     @property
@@ -27,61 +26,7 @@ class PreprocessEntryPoint(BaseEntryPoint):
 
         if argv[0] in AVAILABLE_COMMANDS:
 
-            if argv[0] == "launch_gui":
-                gui_parser = argparse.ArgumentParser(
-                    prog="asreview preprocess launch_gui",
-                    description="ASReview Preprocess GUI",
-                )
-
-                gui_parser.add_argument(
-                    "--ip",
-                    default=HOST_NAME,
-                    type=str,
-                    help="The IP address the server will listen on.",
-                )
-
-                gui_parser.add_argument(
-                    "--port",
-                    default=PORT_NUMBER,
-                    type=int,
-                    help="The port the server will listen on.",
-                )
-
-                gui_parser.add_argument(
-                    "--no-browser",
-                    dest="no_browser",
-                    action="store_true",
-                    help="Do not open ASReview Preprocess GUI in a browser after startup.",
-                )
-
-                gui_parser.add_argument(
-                    "--port-retries",
-                    dest="port_retries",
-                    default=50,
-                    type=int,
-                    help="The number of additional ports to try if the"
-                    "specified port is not available.",
-                )
-
-                gui_parser.add_argument(
-                    "--certfile",
-                    default="",
-                    type=str,
-                    help="The full path to an SSL/TLS certificate file.",
-                )
-
-                gui_parser.add_argument(
-                    "--keyfile",
-                    default="",
-                    type=str,
-                    help="The full path to a private key file for usage with SSL/TLS.",
-                )
-
-                gui_args = gui_parser.parse_args(argv[1:])
-
-                launch_gui(gui_args)
-
-            elif argv[0] == "dedup":
+            if argv[0] == "dedup":
 
                 dedup_parser = argparse.ArgumentParser(prog="asreview preprocess dedup")
 
@@ -96,17 +41,17 @@ class PreprocessEntryPoint(BaseEntryPoint):
                 dedup_parser.add_argument(
                     "-m",
                     "--method",
-                    dest="methods",
-                    default=["title"],
+                    dest="method",
+                    default=["asr"],
                     type=str,
-                    help="Methods for deduplication (default: 'title'). Methods available with CLI: ['title','abstract','pid']. Give multiple methods as -m title -m abstract -m pid. Additional methods are available in GUI. Use 'asreview preprocess launch_GUI' to start GUI",
+                    help="Method for deduplication (default: 'asr'). Methods available with CLI: ['asr', 'endnote']",
                 )
 
                 dedup_parser.add_argument(
                     "--pid",
                     default="doi",
                     type=str,
-                    help="Persistent identifier used for deduplication (default: 'doi'). Only used if method is 'pid'",
+                    help="Persistent identifier used for deduplication (default: 'doi'). Currently only doi is supported",
                 )
 
                 dedup_parser.add_argument(
@@ -134,7 +79,7 @@ class PreprocessEntryPoint(BaseEntryPoint):
                 input_path = dedup_args.input_path[0]
                 output_path = ep_utils.get_output_path(dedup_args)
 
-                deduplication(
+                apply_dedup(
                     input_path=input_path,
                     output_path=output_path,
                     method=dedup_args.methods,
@@ -142,12 +87,12 @@ class PreprocessEntryPoint(BaseEntryPoint):
                     drop_duplicates=dedup_args.drop_duplicates,
                 )
 
-            elif argv[0] == "abstract_finder":
-                af_parser = argparse.ArgumentParser(
-                    prog="asreview preprocess abstract_finder"
+            elif argv[0] == "update":
+                update_parser = argparse.ArgumentParser(
+                    prog="asreview preprocess update"
                 )
 
-                af_parser.add_argument(
+                update_parser.add_argument(
                     "input_path",
                     metavar="input_path",
                     type=str,
@@ -155,43 +100,59 @@ class PreprocessEntryPoint(BaseEntryPoint):
                     help="The file path of the dataset.",
                 )
 
-                af_parser.add_argument(
-                    "--doi_column",
-                    default="doi",
-                    type=str,
-                    help="Name of DOI column, as dois will be used for finding abstracts (default: doi)",
-                )
-
-                af_parser.add_argument(
+                update_parser.add_argument(
                     "-email",
                     "--email",
                     type=str,
-                    help="Your email id. Abstracts are found using Openalex API with pyalex package. Better speed and performance can be achieved by adding email to API call. See OpenAlex documentation for more details at https://docs.openalex.org/how-to-use-the-api/rate-limits-and-authentication",
+                    help="Your email id. Missing data is found using Openalex API with pyalex package. Better speed and performance can be achieved by adding email to API call. See OpenAlex documentation for more details at https://docs.openalex.org/how-to-use-the-api/rate-limits-and-authentication",
                 )
 
-                af_parser.add_argument(
+                update_parser.add_argument(
+                    "--doi-updater",
+                    dest="doi_updater",
+                    type=str,
+                    help="Method for updating missing DOIs (default: crossref). Available [crossref]",
+                )
+
+                update_parser.add_argument(
+                    "--data-updater",
+                    dest="data_updater",
+                    type=str,
+                    help="Method for updating missing metadata including abstracts (default: openalex). Available [openalex]",
+                )
+
+                update_parser.add_argument(
+                    "--localdb",
+                    dest="localdb",
+                    type=str,
+                    help="Method for saving retrieved matadata to local database (default: tinydb). Available [tinydb]",
+                )
+
+                update_parser.add_argument(
                     "-o",
                     "--output",
                     dest="output_path",
                     help="Output file path. Currently only .csv files are supported.",
                 )
 
-                af_args = af_parser.parse_args(argv[1:])
+                update_args = update_parser.parse_args(argv[1:])
 
-                if len(af_args.input_path) > 1:
+                if len(update_args.input_path) > 1:
                     raise ValueError(
                         "Finding abstracts for records from multiple files"
                         " via the CLI is not supported yet."
                     )
 
-                input_path = af_args.input_path[0]
-                output_path = ep_utils.get_output_path(af_args)
+                input_path = update_args.input_path[0]
+                output_path = ep_utils.get_output_path(update_args)
 
-                find_missing_abstracts(
+                update_records(
                     input_path=input_path,
                     output_path=output_path,
-                    doi_column=af_args.doi_column,
-                    email=af_args.email,
+                    email=update_args.email,
+                    doi_update_method=update_args.doi_updater,
+                    data_update_method=update_args.data_updater,
+                    local_database=update_args.localdb,
                 )
 
             else:
