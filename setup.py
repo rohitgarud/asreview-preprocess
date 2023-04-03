@@ -41,6 +41,7 @@ setup(
         "tinydb",
         "pyalex",
         "recordlinkage",
+        "tqdm",
     ],
     extras_require={},
     entry_points={
