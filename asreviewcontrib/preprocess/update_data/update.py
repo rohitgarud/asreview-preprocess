@@ -2,12 +2,15 @@ import logging
 
 import numpy as np
 from asreviewcontrib.preprocess import utils
+from asreviewcontrib.preprocess.data.load import load_data
 from asreviewcontrib.preprocess.deduplication import dd_utils
 from asreviewcontrib.preprocess.io import io_utils
 
 
 def update_records(
-    records_df,
+    input_path,
+    output_path,
+    email=None,
     doi_update_method="crossref",
     data_update_method="openalex",
     local_database="tinydb",
@@ -16,13 +19,20 @@ def update_records(
 
     Parameters
     ----------
-    records_df : pandas dataframe
-        Dataframe of citation records from imported dataset
+    input_path: str
+        Path of input dataset with missing metadata
+    output_path: str
+        Path to save the updated dataset
+    email: str
+        Email address to get polite access to updater APIs such as Openalex and Crossref
+    doi_update_method: str
+        DOI Updater, by default "crossref"
     data_update_method: str
         Data Updater, by default "openalex"
-    local_database:
-        Local database for retrieving and saving matadata, by default "tinydb"
+    local_database: str
+        Local database method for saving retrieved metadata, by default "tinydb"
     """
+    records_df, _ = load_data(input_path)
 
     col_specs = io_utils._get_column_spec(records_df)
 
@@ -30,14 +40,16 @@ def update_records(
     doi_updater = utils._updater_class_from_entry_point(doi_update_method)
     data_updater = utils._updater_class_from_entry_point(data_update_method)
 
+    # Get polite access to updater APIs such as Openalex and Crossref
+    if email:
+        doi_updater._use_email(email)
+        data_updater._use_email(email)
+
     # Clean dois in case not already cleaned as they will be used
     # to retrieve record metadata
     records_df[col_specs["doi"]] = records_df[col_specs["doi"]].apply(
         dd_utils.clean_doi
     )
-
-    # Make year column string type
-    records_df["year"] = records_df["year"].astype("object")
 
     # Make missing values as NAN
     string_columns = records_df.select_dtypes("object").columns
@@ -48,11 +60,10 @@ def update_records(
     )
 
     # Find records where title and year are available and doi is missing
-    records_df["missing_doi"] = (
-        records_df[col_specs["title"]].notna() & records_df[col_specs["year"]].notna()
-    ) & records_df[col_specs["doi"]].isna()
+    records_df = doi_updater.retrieve_dois(records_df)
 
-    n_missing_dois_before = _get_no_of_missing_dois(records_df, col_specs)
+    # Make year column string type
+    records_df["year"] = records_df["year"].astype("object")
 
     # Find records where DOI is available and fields required
     # for deduplication are missing
@@ -93,6 +104,8 @@ def update_records(
         f"{n_missing_abstracts_after} abstracts are still missing.\n"
     )
 
+    updated_records_df.to_csv(output_path)
+    print(f"Updated dataset saved to {output_path}")
     return updated_records_df
 
 
@@ -104,3 +117,7 @@ def _get_no_of_missing_abstracts(records_df, col_specs):
 def _get_no_of_missing_dois(records_df, col_specs):
     """Gives number of missing DOIs in the dataset"""
     return sum(records_df[col_specs["doi"]].isna())
+
+
+# TODO: Add other data and doi updaters using free APIs
+# TODO: Better logging
