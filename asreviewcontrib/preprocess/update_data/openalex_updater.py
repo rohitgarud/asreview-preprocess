@@ -1,4 +1,5 @@
 import pandas as pd
+import pyalex
 from asreviewcontrib.preprocess.config import OPENALEX_QUERY_LIMIT
 from asreviewcontrib.preprocess.update_data.base import BaseUpdater
 from pyalex import Works
@@ -14,6 +15,11 @@ class OpenAlexUpdater(BaseUpdater):
     def __init__(self):
         super(OpenAlexUpdater, self).__init__()
         self.db = None
+        self.email = None
+
+    def _use_email(self, email):
+        self.email = email
+        pyalex.config.email = email
 
     def retrieve_metadata(self, db, doi_list):
         """Retrive metadata for the records using doi
@@ -97,6 +103,3 @@ class OpenAlexUpdater(BaseUpdater):
             parsed_data.append(metadata)
         parsed_data_df = pd.DataFrame(parsed_data)
         return parsed_data_df
-
-
-# TODO: Check if Lens.org api or database can be used freely

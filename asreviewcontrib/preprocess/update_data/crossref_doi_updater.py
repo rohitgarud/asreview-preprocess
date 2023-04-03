@@ -13,6 +13,11 @@ from tqdm import tqdm
 class CrossrefDOIUpdater(BaseDOIUpdater):
     def __init__(self):
         super(CrossrefDOIUpdater, self).__init__()
+        self.email = None
+
+    def _use_email(self, email):
+        self.email = email
+        # TODO: Make use of email in crossref API call
 
     def retrieve_dois(self, records_df: pd.DataFrame) -> pd.DataFrame:
         """Requests Crossref with title-year combination and returns DOI if

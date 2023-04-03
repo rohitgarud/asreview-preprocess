@@ -45,6 +45,9 @@ class BaseUpdater(ABC):
 
         raise NotImplementedError
 
+    def _use_email(email):
+        """Use email to get polite access to updater API"""
+
 
 class BaseDOIUpdater(ABC):
     """Abstract class for doi updater finding missing dois"""
@@ -56,3 +59,6 @@ class BaseDOIUpdater(ABC):
         """Retrieve missing dois"""
 
         raise NotImplementedError
+
+    def _use_email(email):
+        """Use email to get privileged access to updater API"""
