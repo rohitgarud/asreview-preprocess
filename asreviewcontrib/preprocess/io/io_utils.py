@@ -30,7 +30,7 @@ def _standardize_dataframe_for_deduplication(df, column_spec={}):
     # Check if we have all the required columns and add empty columns if missing
     for col in COLS_FOR_DEDUPE:
         if col not in col_names:
-            all_column_spec[col] = column_spec[col]
+            all_column_spec[col] = col
             df.insert(5, col, "")
             logging.warning(
                 f"Unable to detect '{col}' in the dataset. An empty column for"

@@ -22,13 +22,14 @@ HTML_ENTITIES = [
 ]
 
 # Dictionary of journal name abbreviations and full forms
+
 with open("all_journal_abbreviations.csv", "r") as f:
     reader = csv.reader(f)
     all_journal_abbr = {}
 
     for row in reader:
         all_journal_abbr[row[0]] = row[1].encode("ascii", "ignore").decode()
-    # TODO: Create SQL database of journal abbreviations
+    # TODO: Create SQL database or API of journal abbreviations
 
 
 # Clean different fields to unify them to a common format

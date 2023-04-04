@@ -27,9 +27,9 @@ class ASRDedup(BaseDedup):
         # Indexing - blocking
         # List of tuples of columns to combine for indexing
         concat_columns = [("title", "abstract")]
-        combined_col_names = self._create_combined_columns(concat_columns)
-        block_cols = combined_col_names.append(self.col_specs["doi"])
-        candidate_pairs = self._get_candidate_pairs(self, block_cols)
+        block_cols = self._create_combined_columns(concat_columns)
+        block_cols.append(self.col_specs["doi"])
+        candidate_pairs = self._get_candidate_pairs(block_cols)
 
         # Comparing
         pairs_df = self._get_pairs_df(candidate_pairs)

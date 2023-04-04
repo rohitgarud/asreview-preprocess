@@ -68,13 +68,14 @@ class BaseDedup(ABC):
 
     def _get_candidate_pairs(self, block_cols):
         """Get candidate pairs using records linkage blocking method of indexing"""
-        # Replacing empty strings with NA so that Record Linkage doesnot
+        # Replacing empty strings with NAN so that Record Linkage doesnot
         # consider two empty strings as a match while blocking
         string_columns = self.data_df.select_dtypes("object").columns
         self.data_df[string_columns] = (
             self.data_df[string_columns]
             .fillna("")
-            .applymap(lambda val: np.nan if len(val) == 0 else val)
+            .astype("object")
+            .applymap(lambda val: np.nan if not val else val)
         )
 
         # Indexing using blocking

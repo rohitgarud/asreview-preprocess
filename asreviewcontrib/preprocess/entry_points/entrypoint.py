@@ -42,7 +42,7 @@ class PreprocessEntryPoint(BaseEntryPoint):
                     "-m",
                     "--method",
                     dest="method",
-                    default=["asr"],
+                    default="asr",
                     type=str,
                     help="Method for deduplication (default: 'asr'). Methods available with CLI: ['asr', 'endnote']",
                 )
@@ -68,7 +68,7 @@ class PreprocessEntryPoint(BaseEntryPoint):
                     help="Output file path. Currently only .csv files are supported.",
                 )
 
-                dedup_args = dedup_parser.parse_args(argv)
+                dedup_args = dedup_parser.parse_args(argv[1:])
 
                 if len(dedup_args.input_path) > 1:
                     raise ValueError(
@@ -82,7 +82,7 @@ class PreprocessEntryPoint(BaseEntryPoint):
                 apply_dedup(
                     input_path=input_path,
                     output_path=output_path,
-                    method=dedup_args.methods,
+                    method=dedup_args.method,
                     pid=dedup_args.pid,
                     drop_duplicates=dedup_args.drop_duplicates,
                 )
@@ -110,6 +110,7 @@ class PreprocessEntryPoint(BaseEntryPoint):
                 update_parser.add_argument(
                     "--doi-updater",
                     dest="doi_updater",
+                    default="crossref",
                     type=str,
                     help="Method for updating missing DOIs (default: crossref). Available [crossref]",
                 )
@@ -117,6 +118,7 @@ class PreprocessEntryPoint(BaseEntryPoint):
                 update_parser.add_argument(
                     "--data-updater",
                     dest="data_updater",
+                    default="openalex",
                     type=str,
                     help="Method for updating missing metadata including abstracts (default: openalex). Available [openalex]",
                 )
@@ -124,6 +126,7 @@ class PreprocessEntryPoint(BaseEntryPoint):
                 update_parser.add_argument(
                     "--localdb",
                     dest="localdb",
+                    default="tinydb",
                     type=str,
                     help="Method for saving retrieved matadata to local database (default: tinydb). Available [tinydb]",
                 )

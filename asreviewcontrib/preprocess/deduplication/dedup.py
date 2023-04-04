@@ -4,7 +4,7 @@ from asreviewcontrib.preprocess.utils import _deduplicator_class_from_entry_poin
 
 
 def apply_dedup(
-    input_path, output_path, method="asr", drop_duplicates=False
+    input_path, output_path, method="asr", pid="doi", drop_duplicates=False
 ) -> pd.DataFrame:
     """Apply deduplication to remove duplicate records
 
@@ -14,9 +14,11 @@ def apply_dedup(
         Path of the input dataset
     output_path: str
         Path to save the deduplicated dataset
-    method : str, optional
+    method: str, optional
         deduplication method
         Available methods [asr, endnote], by default "asr"
+    pid: str, optional
+        pid used for deduplication
     drop_duplicates : bool, optional
         Remove duplicate records from dataset, by default False
         if False, adds keep_remove column to dataset for indicating duplicates
@@ -28,7 +30,7 @@ def apply_dedup(
     """
 
     records_df, _ = load_data(input_path)
-    deduplicator = _deduplicator_class_from_entry_point(method)
+    deduplicator = _deduplicator_class_from_entry_point(method)()
     output_df = deduplicator.dedup(records_df, drop_duplicates=drop_duplicates)
     output_df.to_csv(output_path)
     print(f"Deduplicated dataset saved to {output_path}")
