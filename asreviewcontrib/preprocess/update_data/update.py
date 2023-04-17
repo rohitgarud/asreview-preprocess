@@ -1,6 +1,7 @@
 import logging
 
 import numpy as np
+import pandas as pd
 from asreviewcontrib.preprocess import utils
 from asreviewcontrib.preprocess.data.load import load_data
 from asreviewcontrib.preprocess.deduplication import dd_utils
@@ -35,10 +36,11 @@ def update_records(
     records_df, _ = load_data(input_path)
 
     col_specs = io_utils._get_column_spec(records_df)
+    print(f"Column Definitions: {col_specs}")
 
-    db = utils._localdb_class_from_entry_point(local_database)
-    doi_updater = utils._updater_class_from_entry_point(doi_update_method)
-    data_updater = utils._updater_class_from_entry_point(data_update_method)
+    db = utils._localdb_class_from_entry_point(local_database)()
+    doi_updater = utils._updater_class_from_entry_point(doi_update_method)()
+    data_updater = utils._updater_class_from_entry_point(data_update_method)()
 
     # Get polite access to updater APIs such as Openalex and Crossref
     if email:
@@ -85,12 +87,10 @@ def update_records(
     retrieved_metadata = data_updater.retrieve_metadata(db, doi_list)
     retrieved_records_df = data_updater.parse_metadata(retrieved_metadata)
 
-    retrieved_records_df = (
-        records_df[col_specs["doi"]]
-        .reset_index()
-        .merge(retrieved_records_df, on="doi")
-        .set_index("record_id")
-    )
+    records_df_only_doi = pd.DataFrame({"doi": records_df[col_specs["doi"]].values})
+    retrieved_records_df = records_df_only_doi.merge(
+        retrieved_records_df, on="doi", how="left"
+    )  # .set_index("record_id")
 
     # Update original df only where the data was missing and is retrieved
     updated_records_df = records_df.combine_first(retrieved_records_df)
@@ -98,11 +98,11 @@ def update_records(
     n_missing_abstracts_after = _get_no_of_missing_abstracts(
         updated_records_df, col_specs
     )
-    logging.info(
-        f"{n_missing_abstracts_before} abstracts were missing.\n"
-        f"{n_missing_abstracts_before - n_missing_abstracts_after} missing abstracts were retrieved.\n"
-        f"{n_missing_abstracts_after} abstracts are still missing.\n"
+    print(f"{n_missing_abstracts_before} abstracts were missing.")
+    print(
+        f"{n_missing_abstracts_before - n_missing_abstracts_after} missing abstracts were retrieved."
     )
+    print(f"{n_missing_abstracts_after} abstracts are still missing.\n")
 
     updated_records_df.to_csv(output_path)
     print(f"Updated dataset saved to {output_path}")

@@ -17,6 +17,7 @@ DEDUPLICATION_COLUMN_DEFINITIONS = {
     "year": ["year"],
     "ref_type": ["ref_type", "type_of_reference"],
     "journal": ["journal"],
+    "doi": ["doi"],
     "volume": ["volume"],
     "pages": ["pages", "start_page"],
     "number": ["number", "issue"],

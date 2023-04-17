@@ -37,7 +37,7 @@ class CrossrefDOIUpdater(BaseDOIUpdater):
         data_df = records_df.copy()
 
         # Set invalid years to None
-        data_df[col_specs["year"]][
+        data_df.loc[:, col_specs["year"]].loc[
             np.where(
                 (data_df[col_specs["year"]] <= 1800)
                 | (data_df[col_specs["year"]] >= datetime.date.today().year + 2)
@@ -50,20 +50,27 @@ class CrossrefDOIUpdater(BaseDOIUpdater):
         # Make missing title and year values as NAN
         cols = [col_specs["title"], col_specs["year"]]
         data_df[cols] = (
-            data_df[cols]
-            .fillna("")
-            .applymap(lambda val: np.nan if len(val) == 0 else val)
+            data_df[cols].fillna("").applymap(lambda val: np.nan if not val else val)
         )
 
         # Check if DOI is missing
+        # TODO: Check if name and year is available in localdb
         missing_doi_count = data_df[col_specs["doi"]].isna().sum()
         print(f"Requesting Crossref to infer {missing_doi_count} missing DOIs")
 
         data_df[col_specs["title"]] = data_df[col_specs["title"]].apply(
-            urllib.parse.quote
+            lambda url: urllib.parse.quote(url) if not pd.isna(url) else np.nan
         )
-        for i, row in data_df[data_df[col_specs["doi"]].isna()].iterrows():
+        # TODO: Remove limit after testing
+        counter = 0
+        for i, row in tqdm(
+            data_df[data_df[col_specs["doi"]].isna()].iterrows(),
+            desc="Finding missing DOIs",
+        ):
+            counter += 1
             data_df.loc[i, col_specs["doi"]] = self._crossref_doi_finder(row)
+            if counter > 5:
+                break
 
         fixed_doi_count = missing_doi_count - data_df[col_specs["doi"]].isna().sum()
         print(

@@ -147,7 +147,7 @@ class PreprocessEntryPoint(BaseEntryPoint):
                     )
 
                 input_path = update_args.input_path[0]
-                output_path = ep_utils.get_output_path(update_args)
+                output_path = ep_utils.get_output_path(update_args, after="updated")
 
                 update_records(
                     input_path=input_path,
