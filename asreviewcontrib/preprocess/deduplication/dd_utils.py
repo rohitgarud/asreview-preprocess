@@ -1,5 +1,6 @@
 import csv
 import logging
+import os
 import re
 
 from unidecode import unidecode
@@ -22,8 +23,11 @@ HTML_ENTITIES = [
 ]
 
 # Dictionary of journal name abbreviations and full forms
+journal_abbr_filepath = os.path.join(
+    os.path.dirname(__file__), "all_journal_abbreviations.csv"
+)
 
-with open("all_journal_abbreviations.csv", "r") as f:
+with open(journal_abbr_filepath, "r") as f:
     reader = csv.reader(f)
     all_journal_abbr = {}
 
